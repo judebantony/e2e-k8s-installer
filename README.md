@@ -1,7 +1,7 @@
 
-# Enterprise-Grade E2E Kubernetes Installer
+# E2E Product Kube-native Installer
 
-A comprehensive, production-ready Go-based CLI tool for deploying and managing Kubernetes clusters across multiple cloud environments with enterprise-grade security, monitoring, and validation capabilities.
+A comprehensive, production-ready Go-based CLI tool for deploying and managing Kubernetes clusters across multiple cloud environments with enterprise-grade security, monitoring, and validation capabilities in air-gapped environments.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/judebantony/e2e-k8s-installer)](https://goreportcard.com/report/github.com/judebantony/e2e-k8s-installer)
 [![GitHub Release](https://img.shields.io/github/release/judebantony/e2e-k8s-installer.svg)](https://github.com/judebantony/e2e-k8s-installer/releases/latest)
@@ -10,10 +10,30 @@ A comprehensive, production-ready Go-based CLI tool for deploying and managing K
 
 ## 🎯 Overview
 
-**Enterprise-grade Kubernetes installer** that automates the complete deployment lifecycle across AWS, Azure, GCP, and on-premises environments. Supports both connected and air-gapped deployments with multi-mode infrastructure provisioning.
+### **What is it?**
 
-Design and develop a unified, cross-platform, end-to-end (E2E) installer for deploying and managing a Kubernetes-based application across startup, mid-size, enterprise, and air-gapped environments.
-The installer automates provisioning, configuration, deployment, validation, and lifecycle management across Azure, AWS, GCP, and on-premises (OpenShift, Rancher, etc.) infrastructures while ensuring compliance, security, and resilience.
+Modern DevOps teams struggle to deploy complex Kubernetes applications across multiple clouds and restricted environments. The E2E K8s Installer solves this by offering a single, automated toolchain that handles infrastructure provisioning, application deployment, and post-install validation — even in air-gapped, secure environments.
+
+Deploying and managing Kubernetes applications across clouds — and especially in secure, air-gapped environments — is hard.
+
+It automates everything from provisioning infrastructure to deploying applications and validating health, all through a single, idempotent CLI tool. Whether your environment is on AWS, Azure, GCP, or on-prem (OpenShift, Rancher), you can deploy with confidence and full auditability.
+
+### **Why teams use it**
+
+- Simplifies Kubernetes deployment across hybrid and air-gapped environments.
+- Ensures security and compliance with built-in scans and logs.
+- Delivers full transparency via progress bars, structured JSON reports, and health checks.
+
+### **How it works**
+
+- ***Ship artifacts*** – sync images, Helm charts, and Terraform modules into your environment.
+- ***Provision infra*** – create Kubernetes clusters and managed services.
+- ***Deploy apps*** – apply Helm charts in order, with built-in validation.
+- ***Validate everything*** – run health checks, post-scripts, and E2E tests.
+
+Every step is safe to rerun, fully logged, and produces detailed reports for traceability.
+
+In short, the installer prepares and ships everything you need — Terraform modules, Helm charts, and container images — into your environment, then automates the infrastructure creation, database setup, and application deployment steps with built-in health checks, logs, and progress tracking.
 
 ### Key Features
 
@@ -94,7 +114,7 @@ flowchart TD
     style ALERT fill:#FFEBEE,stroke:#F44336,stroke-width:2px
 ```
 
-**Detailed Artifact Flow:**
+**How Shipping Works:**
 
 - **🖼️ OCI Container Images**: Transfer from vendor registries (GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry) → client's private registry (Harbor, Nexus, JFrog Artifactory) with security scanning
 - **📊 Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). Charts are versioned and tagged in vendor repositories
@@ -506,13 +526,6 @@ e2e-k8s-installer setup --help
 - **Progress Tracking**: Real-time progress bars with pterm
 - **Command Auditing**: Complete audit trail of operations
 - **Performance Metrics**: Command timing and resource usage
-
-### Planned Monitoring Stack
-
-- **Prometheus**: Metrics collection and alerting
-- **Grafana**: Visualization dashboards
-- **ELK Stack**: Centralized log management
-- **Jaeger**: Distributed tracing
 
 ## 🔧 Troubleshooting
 
