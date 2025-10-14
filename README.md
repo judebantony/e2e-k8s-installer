@@ -54,6 +54,10 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 
 ## 📋 Scope and Functional Requirements
 
+The main fuctional 
+1) Resolving and validating OCI images across vendor and client registries.
+2) Pulling Helm charts and Terraform modules from vendor GitHub and (optionally) mirroring them into the client’s GitHub.
+3) perating in air-gapped, semi-connected, and connected modes with idempotent retries and digest-based verification.
 
 
 ### 🏗️ Infrastructure Provisioning
@@ -145,7 +149,6 @@ flowchart TD
 ## 🧱 Layered Architecture Diagram
 
 ```mermaid
-
 graph LR
     subgraph CLI["🧰 Installer CLI"]
         A1[set-up]
@@ -237,8 +240,75 @@ sequenceDiagram
     CLI->>K8S: Deploy Helm charts in sequence
     CLI->>K8S: Run health checks & smoke tests
     CLI->>CLI: Generate structured JSON reports
+    CLI-->>U: Display progress bars & final summary
+```
 
-    ```mermaid
+## 🛠️ Installer Features
+
+### 🎮 Modes of Operation
+
+- **Interactive Mode**: Guided, step-by-step installation with intelligent prompts and validation
+- **Non-Interactive Mode**: Fully automated installation driven by configuration files
+- **CLI-based Utility**: Cross-platform package management support (yum, brew, apt-get installation)
+
+### 🖥️ Platform Compatibility
+
+- **Operating Systems**: 
+  - **Windows**: Full Windows 10/11 and Windows Server support
+  - **Linux**: Ubuntu, RHEL, CentOS, SUSE, Amazon Linux distributions
+  - **macOS**: Intel and Apple Silicon (M1/M2) compatibility
+- **Kubernetes Versions**: Compatible with multiple K8s versions (1.25+) and major distributions
+  - **Managed Services**: EKS, AKS, GKE integration
+  - **Enterprise Distributions**: OpenShift, Rancher, VMware Tanzu support
+  - **Vanilla Kubernetes**: Kubeadm-based installations
+
+### 📊 Logging & Transparency
+
+- **Detailed Logging**: Comprehensive logs of all actions for troubleshooting and compliance
+- **Real-time Tracking**: Live progress tracking with detailed status updates and error feedback
+- **Idempotent Operations**: All actions are idempotent and resume-capable after failure
+- **Audit Trail**: Complete audit logging for enterprise compliance requirements
+- **Debug Mode**: Verbose logging and diagnostic information for troubleshooting
+
+### 📋 Reporting & Documentation
+
+- **Installation Reports**: Generate comprehensive installation summary reports post-deployment
+- **Error Documentation**: Include detailed error descriptions, rollback actions, and corrective guidance
+- **Post-Install Guides**: Provide complete post-install documentation, access instructions, and maintenance guides
+- **Compliance Reports**: Generate compliance and security assessment reports
+- **Performance Metrics**: Installation time, resource utilization, and optimization recommendations
+
+## 🚀 Features & Core Capabilities
+
+### 🎛️ **Installation & Deployment**
+
+| Feature | Description | Benefits |
+|---------|-------------|----------|
+| **Multi-Phase Installation** | Phased deployment with checkpoint validation | Reliable rollback, progress tracking |
+| **Interactive Mode** | Guided setup with intelligent defaults | User-friendly, reduces configuration errors |
+| **Dry-Run Support** | Preview changes before execution | Risk-free planning, validation |
+| **Resume & Rollback** | Continue from failed phases or revert | Resilient deployments, quick recovery |
+| **Configuration Templates** | Pre-built configs for common scenarios | Faster setup, best practices included |
+
+### ☁️ **Multi-Cloud Support**
+
+| Cloud Provider | Features | Supported Services |
+|----------------|----------|-------------------|
+| **AWS EKS** | ✅ Full automation, VPC setup, IAM roles | EKS, EC2, VPC, ALB, Route53 |
+| **Azure AKS** | ✅ Resource group management, RBAC | AKS, Virtual Networks, Load Balancer |
+| **Google GKE** | ✅ Project setup, service accounts | GKE, Compute Engine, Cloud Load Balancing |
+| **On-Premises** | ✅ Kubeadm, custom networking | Bare metal, VMware, OpenStack |
+
+### 🛡️ **Security Framework**
+
+| Security Component | Capability | Implementation |
+|-------------------|------------|----------------|
+| **RBAC Management** | Role-based access control | Custom roles, service accounts |
+| **Network Policies** | Pod-to-pod communication control | Calico, Cilium integration |
+| **Security Scanning** | Vulnerability detection | Trivy, Aqua Security |
+| **Runtime Security** | Real-time threat detection | Falco, Sysdig integration |
+| **Policy Enforcement** | Admission controllers | OPA Gatekeeper policies |
+| **Secret Management** | Encrypted secret storage | External Secrets, Sealed Secrets |
 
 ### 📊 **Monitoring & Observability**
 
