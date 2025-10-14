@@ -1,0 +1,215 @@
+# Default values for sample-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 3
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25-alpine"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: sample-app.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: sample-app-tls
+  #    hosts:
+  #      - sample-app.local
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: "production"
+  - name: LOG_LEVEL
+    value: "info"
+
+# Config maps
+configMap:
+  enabled: true
+  data:
+    config.json: |
+      {
+        "app": {
+          "name": "sample-app",
+          "version": "1.0.0",
+          "port": 8080
+        },
+        "database": {
+          "host": "localhost",
+          "port": 5432,
+          "name": "sampledb"
+        }
+      }
+
+# Secrets
+secrets:
+  enabled: true
+  data:
+    database-password: "cGFzc3dvcmQ="  # base64 encoded "password"
+    api-key: "bXlfc2VjcmV0X2FwaV9rZXk="  # base64 encoded "my_secret_api_key"
+
+# Persistent Volume Claims
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  storageClass: ""
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# Network Policy
+networkPolicy:
+  enabled: false
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+  # maxUnavailable: 1
+
+# Service Monitor for Prometheus
+serviceMonitor:
+  enabled: false
+  namespace: monitoring
+  labels: {}
+  interval: 30s
+  path: /metrics
+  port: http
+
+# Database configuration
+database:
+  enabled: false
+  type: postgresql
+  host: ""
+  port: 5432
+  name: sampledb
+  username: dbuser
+  # password should be provided via secret
+
+# Redis configuration
+redis:
+  enabled: false
+  host: ""
+  port: 6379
+  # password should be provided via secret
+
+# Migration job
+migration:
+  enabled: false
+  image:
+    repository: migrate/migrate
+    tag: "v4.16.2"
+    pullPolicy: IfNotPresent
+  command:
+    - migrate
+    - -path
+    - /migrations
+    - -database
+    - postgres://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=disable
+    - up
+
+# Init containers
+initContainers: []
+  # - name: wait-for-db
+  #   image: busybox:1.35
+  #   command: ['sh', '-c', 'until nc -z $DB_HOST $DB_PORT; do sleep 1; done']
+
+# Additional containers
+sidecarContainers: []
+  # - name: logging-sidecar
+  #   image: fluent/fluent-bit:2.1
+  #   volumeMounts:
+  #     - name: logs
+  #       mountPath: /var/log
+
+# Additional volumes
+extraVolumes: []
+  # - name: logs
+  #   emptyDir: {}
+
+# Additional volume mounts
+extraVolumeMounts: []
+  # - name: logs
+  #   mountPath: /var/log

@@ -1,0 +1,21 @@
+apiVersion: v2
+name: sample-app
+description: A sample application Helm chart for E2E Kubernetes installer
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies: []
+
+keywords:
+  - sample
+  - application
+  - microservice
+
+home: https://github.com/judebantony/e2e-k8s-installer
+sources:
+  - https://github.com/judebantony/e2e-k8s-installer
+
+maintainers:
+  - name: Jude Antony
+    email: jude@example.com
