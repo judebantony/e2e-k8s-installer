@@ -54,11 +54,102 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 
 ## 📋 Scope and Functional Requirements
 
-The main fuctional 
-1) Resolving and validating OCI images across vendor and client registries.
-2) Pulling Helm charts and Terraform modules from vendor GitHub and (optionally) mirroring them into the client’s GitHub.
-3) perating in air-gapped, semi-connected, and connected modes with idempotent retries and digest-based verification.
+### Artifact preparation & shipping into the client environment
 
+- **Container Images (OCI)**: Transfer from vendor registries → client's private registry (or verify presence if client already mirrors). GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry supported as source registries and Harbor, Nexus, JFrog Artifactory as destination registries
+- **Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). The charts are versioned and tagged in the vendor GitHub repo
+- **Terraform Modules**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
+- **Database Migration Scripts**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
+- **Helthy Checks & Validation**: Ensure all artifacts are verified, scanned, and ready for deployment with detailed reporting
+
+### Full E2E installation once artifacts are in client environment
+
+- ✅ **Infrastructure Provisioning**: Terraform-based deployment (K8s clusters, managed DBs/services)
+- ✅ **Database Migrations**: Flyway/Liquibase execution as Kubernetes Job/init container
+- ✅ **Application Deployment**: Helm-based deployment in configured order with pod readiness + health URL checks
+- ✅ **Post-validation**: Comprehensive checks, housekeeping, and E2E smoke tests
+
+## Operation modes
+
+- 🎯 **Interactive & Config-driven Modes**: Guided configuration with user prompts or fully automated using configuration files
+- 🎯 **Idempotent Operations**: All steps are resume-safe and can be re-run with structured output and progress bars
+- 🎯 **Environment Support**: Both air-gapped and connected environments supported
+
+### Once artifacts are in the client environment (E2E install flow)
+
+### 1. `set-up`
+
+**Purpose**: Initialize workspace and validate prerequisites
+**Actions**:
+
+- Validate environment (OS, CLI tools, network access)
+
+### 2. `package-pull`
+
+**Purpose**: Pull/mirror OCI images, Helm charts, and Terraform modules
+**Actions**:
+
+- Execute the shipping model above for images, Helm, Terraform
+- Produce package-pull-report.json (digests, refs, scan/signature results, mirroring outcome)
+- Show progress bars per artifact; ensure idempotency (skip unchanged)
+
+### 3. `provision-infra`
+
+**Purpose**: Provision Kubernetes cluster and managed services (idempotent)
+**Actions**:
+
+- Uses client-side Terraform (mirrored or local) to create K8s clusters, networks, managed DBs/queues/storage per config
+- Runs embedded health checks (module scripts)
+- Produces infra-report.json with outputs (e.g., kube API endpoint, credentials, namespaces)
+
+### 4. `db-migrate`
+
+**Purpose**: Migrate database schema and data
+**Actions**:
+
+- Fetches DB scripts from vendor GitHub tag; mirrors to client GitHub if configured or uses local checkout
+- Runs as K8s Job/init container (Flyway/Liquibase) in the target namespace
+- Streams logs to console; writes db-migrate-report.json (applied versions, validation)
+
+### 5. `deploy`
+
+**Purpose**: Deploy application components
+**Actions**:
+
+- Applies Helm releases in configured order (namespaces, values)
+- Waits for pod readiness; probes health URLs where defined
+- Writes deploy-report.json with per-component status and timings
+
+### 6. `post-validate`
+
+**Purpose**: Execute post-deployment validation and housekeeping
+**Actions**:
+
+- Executes post scripts (housekeeping: log rotation, backup/restore hooks, config sync)
+- Writes post-validate-report.json
+
+### 7. `e2e-test`
+
+**Purpose**: Run smoke/E2E checks
+**Actions**:
+
+- Runs smoke/E2E checks; writes e2e-report.json
+
+### 8. `install (orchestrator)`
+
+**Purpose**: Orchestrate the full installation workflow
+**Actions**:
+
+- Chains the steps: package-pull → provision-infra → db-migrate → deploy → post-validate → e2e-test
+- Resume from failure (--from-step), limit to a stage (--to-step)
+- Produces a consolidated install-summary.json (links to all reports, final status)
+
+### 9. `healthy-check`
+
+**Purpose**: Perform comprehensive health checks on the deployed environment
+**Actions**:
+
+- Executes a series of health checks to validate the state of the deployed services and infrastructure
 
 ### 🏗️ Infrastructure Provisioning
 
@@ -254,7 +345,7 @@ sequenceDiagram
 
 ### 🖥️ Platform Compatibility
 
-- **Operating Systems**: 
+- **Operating Systems**:
   - **Windows**: Full Windows 10/11 and Windows Server support
   - **Linux**: Ubuntu, RHEL, CentOS, SUSE, Amazon Linux distributions
   - **macOS**: Intel and Apple Silicon (M1/M2) compatibility
@@ -434,6 +525,7 @@ sequenceDiagram
 ### Technology Architecture
 
 #### **Core Technologies**
+
 - **Go 1.21+**: Modern Go with enhanced performance
 - **Cobra**: Enterprise CLI framework with auto-completion  
 - **JSON Configuration**: Type-safe configuration with validation
@@ -441,6 +533,7 @@ sequenceDiagram
 - **Pterm**: Professional terminal UI with progress tracking
 
 #### **Enterprise Libraries**
+
 - **go-containerregistry**: OCI registry operations and authentication
 - **go-git**: Git repository operations and version control
 - **go-playground/validator**: Comprehensive input validation
@@ -817,6 +910,7 @@ Initialize a workspace and validate prerequisites:
 ```
 
 **What it does:**
+
 - Creates workspace directory structure
 - Validates prerequisites (kubectl, helm, terraform)
 - Generates sample installer-config.json
@@ -848,6 +942,7 @@ Synchronize artifacts from vendor to client registries:
 ```
 
 **What it does:**
+
 - Synchronizes OCI images between registries with authentication
 - Clones and mirrors Helm chart repositories
 - Manages Terraform module repositories
@@ -957,6 +1052,7 @@ The installer currently implements enterprise-grade security patterns:
 ```
 
 **Current Security Features:**
+
 - **Configuration Validation**: Comprehensive input validation using go-playground/validator
 - **Credential Security**: Secure handling of registry credentials and tokens
 - **Path Sanitization**: Safe file system operations with proper path validation
@@ -968,6 +1064,7 @@ The installer currently implements enterprise-grade security patterns:
 The following security features are planned for future releases:
 
 ##### RBAC (Role-Based Access Control)
+
 ```yaml
 # Future implementation
 security:
@@ -982,6 +1079,7 @@ security:
 ```
 
 ##### Network Policies
+
 ```yaml
 # Future implementation
 security:
@@ -996,6 +1094,7 @@ security:
 ```
 
 ##### Security Scanning
+
 - **Container Scanning**: Trivy integration for vulnerability detection (planned)
 - **Runtime Security**: Falco for runtime threat detection (planned)
 - **Policy Enforcement**: OPA Gatekeeper for admission control (planned)
@@ -1046,6 +1145,7 @@ The installer currently provides comprehensive logging and progress tracking:
 ```
 
 **Current Capabilities:**
+
 - **Structured Logging**: High-performance JSON logging with zerolog
 - **Progress Tracking**: Beautiful progress bars and real-time status with pterm  
 - **Command Auditing**: Complete audit trail of all operations
@@ -1069,18 +1169,21 @@ The installer currently provides comprehensive logging and progress tracking:
 The following monitoring components are planned for future Kubernetes deployments:
 
 #### Prometheus Stack
+
 - **Prometheus Server**: Metrics collection and storage (planned)
 - **Alertmanager**: Alert routing and management (planned)
 - **Node Exporter**: System metrics collection (planned)
 - **kube-state-metrics**: Kubernetes object metrics (planned)
 
 #### Grafana Dashboards
+
 - **Cluster Overview**: High-level cluster health (planned)
 - **Node Metrics**: System resource utilization (planned)
 - **Pod Metrics**: Application performance (planned)
 - **Security Dashboard**: Security event monitoring (planned)
 
 #### Logging Infrastructure
+
 - **Elasticsearch**: Log storage and indexing (planned)
 - **Logstash**: Log processing and enrichment (planned)
 - **Kibana**: Log visualization and analysis (planned)
@@ -1265,6 +1368,7 @@ jq . installer-config.json
 ```
 
 **Common validation errors:**
+
 - Invalid JSON syntax
 - Missing required fields (`installer.workspace`, `artifacts.images.vendor.registry`)
 - Invalid URL formats in registry configurations
@@ -1303,6 +1407,7 @@ git config --list | grep user
 Future releases will include:
 
 #### Issue: Cloud Authentication Failures
+
 ```bash
 # AWS (planned)
 aws configure list
@@ -1318,6 +1423,7 @@ gcloud config list
 ```
 
 #### Issue: Network Connectivity Problems
+
 ```bash
 # Test connectivity (planned)
 k8s-installer validate network
@@ -1330,6 +1436,7 @@ kubectl get networkpolicies --all-namespaces
 ```
 
 #### Issue: Resource Quota Exceeded
+
 ```bash
 # Check resource usage (planned)
 kubectl describe nodes
@@ -1472,6 +1579,6 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-**Made with ❤️ by Jude Antony**
+***Made with ❤️ by Jude Antony***
 
 *Star ⭐ this repository if you find it helpful!*
