@@ -326,14 +326,21 @@ sequenceDiagram
 
 ### 🚧 **In Development**
 
-| Component | Status | Priority |
-|-----------|---------|----------|
-| **☁️ provision-infra Command** | 🔜 Next | Terraform infrastructure deployment |
-| **🗄️ db-migrate Command** | 🔜 Planned | Database initialization and migrations |
-| **🚀 deploy Command** | 🔜 Planned | Helm chart deployment with health validation |
-| **✅ post-validate Command** | 🔜 Planned | Comprehensive system validation |
-| **🧪 e2e-test Command** | 🔜 Planned | End-to-end testing suite |
-| **🎯 install Orchestrator** | 🔜 Planned | Complete workflow orchestration |
+| Component | Status | Priority | Implementation Progress | Target Release |
+|-----------|---------|----------|------------------------|----------------|
+| **☁️ provision-infra Command** | � In Progress | 🔥 High | Terraform integration module ready | v1.1.0 |
+| **🗄️ db-migrate Command** | � Planned | 🔥 High | Database migration framework design | v1.2.0 |
+| **🚀 deploy Command** | � Planned | 🔥 High | Helm deployment engine architecture | v1.2.0 |
+| **✅ post-validate Command** | � Planned | 🟡 Medium | Validation framework specification | v1.3.0 |
+| **🧪 e2e-test Command** | � Planned | 🟡 Medium | Testing suite design phase | v1.3.0 |
+| **🎯 install Orchestrator** | � Planned | 🔥 High | Workflow orchestration patterns | v1.4.0 |
+
+#### 🎯 Development Roadmap
+
+- **Phase 1 (v1.1.0)**: Infrastructure provisioning with Terraform automation
+- **Phase 2 (v1.2.0)**: Database migrations and application deployment capabilities  
+- **Phase 3 (v1.3.0)**: Comprehensive validation and testing framework
+- **Phase 4 (v1.4.0)**: Complete workflow orchestration and production readiness
 
 ## 🛠️ Installer Features
 

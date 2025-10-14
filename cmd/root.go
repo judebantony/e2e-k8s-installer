@@ -54,6 +54,20 @@ func init() {
 	// Add subcommands that we know work
 	rootCmd.AddCommand(setupCmd)
 	rootCmd.AddCommand(packagePullCmd)
+	rootCmd.AddCommand(provisionInfraCmd)
+	rootCmd.AddCommand(dbMigrateCmd)
+	rootCmd.AddCommand(deployCmd)
+	rootCmd.AddCommand(postValidateCmd)
+	// Temporary placeholder for e2e-test command  
+	tempE2ECmd := &cobra.Command{
+		Use:   "e2e-test",
+		Short: "Execute end-to-end testing suite (placeholder)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return fmt.Errorf("e2e-test command not yet fully implemented")
+		},
+	}
+	rootCmd.AddCommand(tempE2ECmd)
+	rootCmd.AddCommand(installCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
