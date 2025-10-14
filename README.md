@@ -1,3 +1,4 @@
+
 # Enterprise-Grade E2E Kubernetes Installer
 
 A comprehensive, production-ready Go-based CLI tool for deploying and managing Kubernetes clusters across multiple cloud environments with enterprise-grade security, monitoring, and validation capabilities.
@@ -7,18 +8,21 @@ A comprehensive, production-ready Go-based CLI tool for deploying and managing K
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## 🎯 Project Overview
+## 🎯 Overview
+
+**Enterprise-grade Kubernetes installer** that automates the complete deployment lifecycle across AWS, Azure, GCP, and on-premises environments. Supports both connected and air-gapped deployments with multi-mode infrastructure provisioning.
 
 Design and develop a unified, cross-platform, end-to-end (E2E) installer for deploying and managing a Kubernetes-based application across startup, mid-size, enterprise, and air-gapped environments.
 The installer automates provisioning, configuration, deployment, validation, and lifecycle management across Azure, AWS, GCP, and on-premises (OpenShift, Rancher, etc.) infrastructures while ensuring compliance, security, and resilience.
 
-This installer provides a unified approach to Kubernetes cluster deployment with:
+### Key Features
 
-- **CLI-First Design**: Built with Go and Cobra framework for robust command-line operations
-- **Multi-Cloud Native**: Seamless deployment across AWS, Azure, GCP, and on-premises
-- **Security-First**: Integrated security scanning, RBAC, and policy enforcement
-- **Enterprise Ready**: Production-grade monitoring, logging, and operational tools
-- **Validation-Driven**: Comprehensive pre-flight and post-deployment validation
+- **🏗️ Multi-Mode Infrastructure**: Terraform, Makefile, and Hybrid provisioning modes
+- **📦 Artifact Management**: OCI images, Helm charts, and Terraform modules synchronization
+- **☁️ Multi-Cloud Ready**: AWS EKS, Azure AKS, GCP GKE, and on-premises support
+- **🔒 Security-First**: Enterprise authentication, RBAC, and compliance scanning
+- **📊 Enterprise Observability**: Structured logging, progress tracking, and comprehensive reporting
+- **🔄 Air-gapped Support**: Complete offline installation capabilities
 
 ## 🎯 Core Objectives
 
@@ -32,7 +36,7 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 
 ### Artifact preparation & shipping into the client environment
 
-- **Container Images (OCI)**: Transfer from vendor registries → client's private registry (or verify presence if client already mirrors). GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry supported as source registries and Harbor, Nexus, JFrog Artifactory as destination registries
+- **App Container Images (OCI)**: Transfer from vendor registries → client's private registry (or verify presence if client already mirrors). GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry supported as source registries and Harbor, Nexus, JFrog Artifactory as destination registries
 - **Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). The charts are versioned and tagged in the vendor GitHub repo
 - **Terraform Modules**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
 - **Database Migration & Repair Scripts**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
@@ -41,130 +45,23 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 ### Full E2E installation once artifacts are in client environment
 
 - ✅ **Infrastructure Provisioning**: Terraform-based deployment (K8s clusters, managed DBs/services)
-- ✅ **Database Migrations**: Flyway/Liquibase execution as Kubernetes Job/init container
+- ✅ **Database Migrations & Repair**: Flyway/Liquibase execution as Kubernetes Job/init container
 - ✅ **Application Deployment**: Helm-based deployment in configured order with pod readiness + health URL checks
+- ✅ **Post-installation Validation**: Ensure all components are correctly installed and configured
+- ✅ **Configuration Drift Detection**: Monitor and report any changes to the deployed environment
 - ✅ **Post-validation**: Comprehensive checks, housekeeping, and E2E smoke tests
+- ✅ **Reporting & Audit Logs**: Detailed JSON reports and structured logs for every step
 
-### 🎮 Operation modes
+## 🚀 Current Status
 
-- 🎯 **Interactive & Config-driven Modes**: Guided configuration with user prompts or fully automated using configuration files
-- 🎯 **Idempotent Operations**: All steps are resume-safe and can be re-run with structured output and progress bars
-- 🎯 **Environment Support**: Both air-gapped and connected environments supported
-
-### Once artifacts are in the client environment (E2E install flow)
-
-### 1. `set-up`
-
-**Purpose**: Initialize workspace and validate prerequisites
-**Actions**:
-
-- Validate environment (OS, CLI tools, network access)
-
-### 2. `package-pull`
-
-**Purpose**: Pull/mirror OCI images, Helm charts, and Terraform modules
-**Actions**:
-
-- Execute the shipping model above for images, Helm, Terraform
-- Produce package-pull-report.json (digests, refs, scan/signature results, mirroring outcome)
-- Show progress bars per artifact; ensure idempotency (skip unchanged)
-
-### 3. `provision-infra`
-
-**Purpose**: Provision Kubernetes cluster and managed services (idempotent)
-**Actions**:
-
-- Uses client-side Terraform (mirrored or local) to create K8s clusters, networks, managed DBs/queues/storage per config
-- Runs embedded health checks (module scripts)
-- Produces infra-report.json with outputs (e.g., kube API endpoint, credentials, namespaces)
-
-### 4. `db-migrate`
-
-**Purpose**: Migrate database schema and data
-**Actions**:
-
-- Fetches DB scripts from vendor GitHub tag; mirrors to client GitHub if configured or uses local checkout
-- Runs as K8s Job/init container (Flyway/Liquibase) in the target namespace
-- Streams logs to console; writes db-migrate-report.json (applied versions, validation)
-
-### 5. `deploy`
-
-**Purpose**: Deploy application components
-**Actions**:
-
-- Applies Helm releases in configured order (namespaces, values)
-- Waits for pod readiness; probes health URLs where defined
-- Writes deploy-report.json with per-component status and timings
-
-### 6. `post-validate`
-
-**Purpose**: Execute post-deployment validation and housekeeping
-**Actions**:
-
-- Executes post scripts (housekeeping: log rotation, backup/restore hooks, config sync)
-- Writes post-validate-report.json
-
-### 7. `e2e-test`
-
-**Purpose**: Run smoke/E2E checks
-**Actions**:
-
-- Runs smoke/E2E checks; writes e2e-report.json
-
-### 8. `install (orchestrator)`
-
-**Purpose**: Orchestrate the full installation workflow
-**Actions**:
-
-- Chains the steps: package-pull → provision-infra → db-migrate → deploy → post-validate → e2e-test
-- Resume from failure (--from-step), limit to a stage (--to-step)
-- Produces a consolidated install-summary.json (links to all reports, final status)
-
-### 9. `healthy-check`
-
-**Purpose**: Perform comprehensive health checks on the deployed environment
-**Actions**:
-
-- Executes a series of health checks to validate the state of the deployed services and infrastructure
-
-### 🏗️ Infrastructure Provisioning
-
-- **Terraform Integration**: Use Terraform for cloud and cluster provisioning
-- **Multi-Cloud Support**: Support Azure, AWS, GCP, and on-prem (OpenShift, Rancher) Kubernetes setups
-- **Parameter Collection**: Collect customer parameters (credentials, regions, network settings, managed services options) interactively or via config files
-- **Managed Services**: Provision cloud-managed services (databases, storage, queues) per provider specifications
-
-### 🚀 Application Deployment
-
-- **Helm Integration**: Use Helm for application component deployment
-- **Repository Management**: Store Helm charts and Terraform modules in GitHub repository (private or public)
-- **Container Registry Support**:
-  - **Source Registries**: DockerHub, GitHub Packages, Azure ACR, AWS ECR, GCP Artifact Registry
-  - **Destination Registries**: Customer's private registry (Harbor, Nexus, JFrog Artifactory)
-- **Security Scanning**: Perform image scanning and vulnerability assessments prior to deployment
-- **Configuration Management**: Support environment variables, secrets, and config map management
-- **Deployment Modes**: Support dry-run, actual install, and post-install validation
-
-### 🛡️ Security and Authentication
-
-- **Modern Authentication**: Integrate OIDC 2.0 and OAuth 2.0 using Auth0 for secure access
-- **Enterprise Integration**: Support enterprise authentication (LDAP, Active Directory)
-- **Secret Management**: Integrate with HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, or GCP Secret Manager
-- **Compliance**: Ensure all operations are auditable and compliant with enterprise standards
-
-### 📊 Observability and Reliability
-
-- **Monitoring Stack**: Integrate ELK Stack, Prometheus, and Grafana for comprehensive monitoring and logging
-- **Resilience Patterns**: Implement circuit breaker patterns for service resilience
-- **Health Management**: Enable alerting, health checks, and post-deployment testing
-- **Recovery Capabilities**: Provide rollback and recovery capabilities in case of deployment failures
-
-### 🔄 CI/CD Integration
-
-- **Pipeline Integration**: Integrate GitHub Actions for CI pipelines and ArgoCD for CD.
-- **Source Code Validation**: Enable validation of source code from client's private Git repositories
-- **Post-Deployment Housekeeping**: Support post-deployment housekeeping: log rotation, DB backup/restore, post-deploy scripts
-- **Application Upgrades**: Support application upgrades in an idempotent and rollback-safe manner
+| Component | Status | Description |
+|-----------|---------|-------------|
+| **🔧 setup Command** | ✅ Complete | Workspace initialization and prerequisite validation |
+| **📦 package-pull Command** | ✅ Complete | Artifact synchronization (OCI/Helm/Terraform) |
+| **☁️ provision-infra Command** | ✅ Complete | Multi-mode infrastructure provisioning |
+| **🗄️ db-migrate Command** | 🚧 In Progress | Database migration framework |
+| **🚀 deploy Command** | 🚧 In Progress | Helm-based application deployment |
+| **✅ post-validate & e2e-test** | 🔄 Planned | Validation and testing framework |
 
 ## 🧭 Flow Diagram
 
@@ -296,686 +193,80 @@ sequenceDiagram
     CLI-->>U: Display progress bars & final summary
 ```
 
-## 🚀 Current Implementation Status
-
-### ✅ **Completed Features**
-
-| Component | Status | Description |
-|-----------|---------|-------------|
-| **🏗️ Core Architecture** | ✅ Complete | Go 1.21+ with enhanced enterprise libraries |
-| **⚙️ Configuration System** | ✅ Complete | JSON-based configuration with comprehensive validation |
-| **📊 Logging & Progress** | ✅ Complete | Structured logging (zerolog) + beautiful progress indicators (pterm) |
-| **🔧 setup Command** | ✅ Complete | Workspace initialization and prerequisite validation |
-| **📦 package-pull Command** | ✅ Complete | OCI image sync, Helm chart management, Git repository handling |
-| **☁️ provision-infra Command** | ✅ Complete | Multi-mode infrastructure provisioning (terraform/makefile/hybrid) |
-| **🎨 CLI Experience** | ✅ Complete | Professional banner, color-coded output, comprehensive help |
-| **🔗 Multi-Mode Infrastructure** | ✅ Complete | Unified terraform/makefile/hybrid provisioning system |
-
-### 🚧 **In Development**
-
-| Component | Status | Priority | Implementation Progress | Target Release |
-|-----------|---------|----------|------------------------|----------------|
-| **☁️ provision-infra Command** | � In Progress | 🔥 High | Terraform integration module ready | v1.1.0 |
-| **🗄️ db-migrate Command** | � Planned | 🔥 High | Database migration framework design | v1.2.0 |
-| **🚀 deploy Command** | � Planned | 🔥 High | Helm deployment engine architecture | v1.2.0 |
-| **✅ post-validate Command** | � Planned | 🟡 Medium | Validation framework specification | v1.3.0 |
-| **🧪 e2e-test Command** | � Planned | 🟡 Medium | Testing suite design phase | v1.3.0 |
-| **🎯 install Orchestrator** | � Planned | 🔥 High | Workflow orchestration patterns | v1.4.0 |
-
-#### 🎯 Development Roadmap
-
-- **Phase 1 (v1.1.0)**: ✅ **COMPLETED** - Multi-mode infrastructure provisioning with enhanced Makefile support
-- **Phase 2 (v1.2.0)**: 🚧 **IN PROGRESS** - Database migrations and application deployment capabilities  
-- **Phase 3 (v1.3.0)**: 🔄 **PLANNED** - Comprehensive validation and testing framework
-- **Phase 4 (v1.4.0)**: 🔄 **PLANNED** - Complete workflow orchestration and production readiness
-
-## 🛠️ Installer Features
-
-### 🎮 Modes of Operation
-
-- **Interactive Mode**: Guided, step-by-step installation with intelligent prompts and validation
-- **Non-Interactive Mode**: Fully automated installation driven by configuration files
-- **CLI-based Utility**: Cross-platform package management support (yum, brew, apt-get installation)
-
-### 🖥️ Platform Compatibility
-
-- **Operating Systems**:
-  - **Windows**: Full Windows 10/11 and Windows Server support
-  - **Linux**: Ubuntu, RHEL, CentOS, SUSE, Amazon Linux distributions
-  - **macOS**: Intel and Apple Silicon (M1/M2) compatibility
-- **Kubernetes Versions**: Compatible with multiple K8s versions (1.25+) and major distributions
-  - **Managed Services**: EKS, AKS, GKE integration
-  - **Enterprise Distributions**: OpenShift, Rancher, VMware Tanzu support
-  - **Vanilla Kubernetes**: Kubeadm-based installations
-
-### 📊 Logging & Transparency
-
-- **Detailed Logging**: Comprehensive logs of all actions for troubleshooting and compliance
-- **Real-time Tracking**: Live progress tracking with detailed status updates and error feedback
-- **Idempotent Operations**: All actions are idempotent and resume-capable after failure
-- **Audit Trail**: Complete audit logging for enterprise compliance requirements
-- **Debug Mode**: Verbose logging and diagnostic information for troubleshooting
-
-### 📋 Reporting & Documentation
-
-- **Installation Reports**: Generate comprehensive installation summary reports post-deployment
-- **Error Documentation**: Include detailed error descriptions, rollback actions, and corrective guidance
-- **Post-Install Guides**: Provide complete post-install documentation, access instructions, and maintenance guides
-- **Compliance Reports**: Generate compliance and security assessment reports
-- **Performance Metrics**: Installation time, resource utilization, and optimization recommendations
-
-## 🚀 Features & Core Capabilities
-
-### 🎛️ **Installation & Deployment**
-
-| Feature | Description | Benefits |
-|---------|-------------|----------|
-| **Multi-Phase Installation** | Phased deployment with checkpoint validation | Reliable rollback, progress tracking |
-| **Interactive Mode** | Guided setup with intelligent defaults | User-friendly, reduces configuration errors |
-| **Dry-Run Support** | Preview changes before execution | Risk-free planning, validation |
-| **Resume & Rollback** | Continue from failed phases or revert | Resilient deployments, quick recovery |
-| **Configuration Templates** | Pre-built configs for common scenarios | Faster setup, best practices included |
-
-### ☁️ **Multi-Cloud Support**
-
-| Cloud Provider | Features | Supported Services |
-|----------------|----------|-------------------|
-| **AWS EKS** | ✅ Full automation, VPC setup, IAM roles | EKS, EC2, VPC, ALB, Route53 |
-| **Azure AKS** | ✅ Resource group management, RBAC | AKS, Virtual Networks, Load Balancer |
-| **Google GKE** | ✅ Project setup, service accounts | GKE, Compute Engine, Cloud Load Balancing |
-| **On-Premises** | ✅ Kubeadm, custom networking | Bare metal, VMware, OpenStack |
-
-### 🛡️ **Security Framework**
-
-| Security Component | Capability | Implementation |
-|-------------------|------------|----------------|
-| **RBAC Management** | Role-based access control | Custom roles, service accounts |
-| **Network Policies** | Pod-to-pod communication control | Calico, Cilium integration |
-| **Security Scanning** | Vulnerability detection | Trivy, Aqua Security |
-| **Runtime Security** | Real-time threat detection | Falco, Sysdig integration |
-| **Policy Enforcement** | Admission controllers | OPA Gatekeeper policies |
-| **Secret Management** | Encrypted secret storage | External Secrets, Sealed Secrets |
-
-### 📊 **Monitoring & Observability**
-
-| Component | Purpose | Features |
-|-----------|---------|----------|
-| **Prometheus** | Metrics collection & alerting | Custom metrics, alert rules, federation |
-| **Grafana** | Visualization & dashboards | Pre-built dashboards, custom panels |
-| **ELK Stack** | Centralized logging | Log aggregation, search, analysis |
-| **Jaeger** | Distributed tracing | Request tracing, performance analysis |
-| **Falco** | Security monitoring | Runtime security events, compliance |
-
-### 🔧 **Operational Excellence**
-
-| Feature | Description | Use Cases |
-|---------|-------------|-----------|
-| **Health Checks** | Comprehensive cluster validation | Post-deployment verification |
-| **Backup & Recovery** | Automated state management | Disaster recovery, data protection |
-| **Upgrade Management** | Rolling cluster upgrades | Zero-downtime updates |
-| **Scaling Operations** | Auto & manual scaling | Load adaptation, cost optimization |
-| **Certificate Management** | Automated TLS provisioning | Security compliance, cert rotation |
-
-### 🔄 **CI/CD Integration**
-
-| Platform | Support | Features |
-|----------|---------|----------|
-| **GitHub Actions** | ✅ Native workflows | Automated testing, deployment |
-| **GitLab CI** | ✅ Pipeline integration | Container registry, deployment stages |
-| **Jenkins** | ✅ Plugin support | Custom pipelines, artifact management |
-| **ArgoCD** | ✅ GitOps workflows | Declarative deployments, sync policies |
-
-### 📝 **Configuration Management**
-
-| Feature | Capability | Benefits |
-|---------|------------|----------|
-| **YAML Configuration** | Declarative cluster definition | Version control, reproducibility |
-| **Environment Profiles** | Dev/staging/prod templates | Consistent deployments across environments |
-| **Variable Substitution** | Dynamic configuration values | Environment-specific customization |
-| **Configuration Validation** | Schema-based validation | Early error detection, compliance |
-| **Secret Management** | Encrypted sensitive data | Security best practices |
-
-### 🧪 **Validation & Testing**
-
-| Validation Type | Scope | Checks |
-|----------------|-------|---------|
-| **Pre-flight** | Environment readiness | Dependencies, permissions, connectivity |
-| **Configuration** | YAML validation | Schema compliance, resource limits |
-| **Post-deployment** | Cluster health | Service status, networking, security |
-| **Compliance** | Security standards | CIS benchmarks, best practices |
-| **Performance** | Resource utilization | CPU, memory, network performance |
-
-### 🔌 **Extensibility**
-
-| Extension Point | Capability | Examples |
-|----------------|------------|----------|
-| **Custom Providers** | Plugin architecture | Private cloud integrations |
-| **Hook System** | Pre/post deployment scripts | Custom validations, notifications |
-| **Template Engine** | Custom resource templates | Organization-specific resources |
-| **API Integration** | REST API for automation | External tool integration |
-
-### 📈 **Enterprise Features**
-
-| Feature | Description | Enterprise Value |
-|---------|-------------|------------------|
-| **Multi-tenancy** | Namespace isolation & quotas | Resource governance, cost allocation |
-| **Compliance Reporting** | Automated compliance checks | Audit trails, regulatory compliance |
-| **Cost Management** | Resource usage tracking | Budget control, optimization insights |
-| **Support Bundle** | Diagnostic data collection | Faster troubleshooting, support |
-| **Air-gapped Support** | Offline installation capability | Secure environments, compliance |
-
 ## 🏗️ Architecture
 
-### Multi-Mode Infrastructure Provisioning Architecture
-
-The installer implements a sophisticated **multi-mode infrastructure provisioning system** that supports Terraform, Makefile-based workflows, and hybrid approaches for maximum flexibility.
-
-#### **High-Level Architecture Overview**
-
-```plaintext
-┌─────────────────────────────────────────────────────────────────────┐
-│                           CLI Application Entry Point               │
-│                        main.go → cmd.Execute()                      │
-└─────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Command Layer (cmd/)                        │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │
-│  │   setup.go  │ │package_pull │ │provision_   │ │   deploy    │    │
-│  │             │ │    .go      │ │  infra.go   │ │    .go      │    │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘    │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │
-│  │ db_migrate  │ │post_validate│ │ e2e_test.go │ │ install.go  │    │
-│  │   .go       │ │   .go       │ │             │ │             │    │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘    │
-└─────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Business Logic Layer (pkg/)                    │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
-│  │   config/       │ │   infrastructure│ │   artifacts/    │         │
-│  │   types.go      │ │   manager.go    │ │   manager.go    │         │
-│  │   validation    │ │   Multi-Mode    │ │   OCI/Helm/Git  │         │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
-│  │   makefile/     │ │   terraform/    │ │   logger/       │         │
-│  │   manager.go    │ │   manager.go    │ │   progress/     │         │
-│  │   Execution     │ │   Operations    │ │   UI Components │         │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
-└─────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    External Integration Layer                       │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
-│  │  OCI Registries │ │  Git Repositories│ │  Cloud Providers │       │
-│  │  Harbor/DockerHub│ │  GitHub/GitLab  │ │  AWS/Azure/GCP  │         │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Multi-Mode Infrastructure Provisioning System
-
-The **Infrastructure Manager** (`pkg/infrastructure/manager.go`) provides a unified interface supporting three distinct provisioning modes:
-
-#### **1. Terraform Mode** 🏗️
-
-- **Purpose**: Pure Terraform-based infrastructure provisioning
-- **Use Case**: Cloud-native deployments with Terraform state management
-- **Components**:
-  - `pkg/terraform/manager.go`: Terraform operations (init, plan, apply)
-  - Multi-cloud support (AWS EKS, Azure AKS, GCP GKE)
-  - Automated health checks and validation
-
-#### **2. Makefile Mode** ⚙️
-
-- **Purpose**: Makefile-based infrastructure workflows
-- **Use Case**: Custom provisioning scripts, legacy systems, hybrid environments
-- **Components**:
-  - `pkg/makefile/manager.go`: Makefile execution with enterprise features
-  - Target execution with timeout and environment management
-  - Integration with existing DevOps workflows
-
-#### **3. Hybrid Mode** 🔄
-
-- **Purpose**: Combined Terraform + Makefile workflows
-- **Use Case**: Complex environments requiring both approaches
-- **Workflow**: Makefile orchestration calling Terraform modules internally
-
-```go
-// Infrastructure Manager modes
-const (
-    ProvisionModeTerraform = "terraform"  // Pure Terraform
-    ProvisionModeMakefile  = "makefile"   // Pure Makefile  
-    ProvisionModeHybrid    = "hybrid"     // Combined approach
-)
-```
-
-### Unified Infrastructure Interface
-
-```go
-type Manager struct {
-    config          *config.InfrastructureConfig
-    terraformMgr    *terraform.Manager      // Terraform operations
-    makefileMgr     *makefile.Manager       // Makefile execution
-    provisionMode   string                  // Mode selector
-}
-
-// Unified operations across all modes
-func (m *Manager) Init(dryRun bool) error
-func (m *Manager) Plan(dryRun bool) error  
-func (m *Manager) Apply(dryRun bool) error
-func (m *Manager) Destroy(dryRun bool) error
-func (m *Manager) Validate(dryRun bool) error
-```
-
-### Implementation Status & Features
-
-| Layer | Component | Status | Description |
-|-------|-----------|--------|-------------|
-| **CLI** | Cobra Framework | ✅ Complete | Professional CLI with auto-completion |
-| **CLI** | Beautiful UI | ✅ Complete | pterm-based progress bars and colors |
-| **Config** | JSON Processing | ✅ Complete | go-playground/validator with comprehensive validation |
-| **Config** | Multi-Mode Support | ✅ Complete | terraform/makefile/hybrid configuration |
-| **Commands** | setup Command | ✅ Complete | Workspace initialization & validation |
-| **Commands** | package-pull Command | ✅ Complete | OCI/Helm/Terraform synchronization |
-| **Commands** | provision-infra Command | ✅ Complete | Multi-mode infrastructure provisioning |
-| **Infrastructure** | Terraform Manager | ✅ Complete | Multi-cloud Terraform operations |
-| **Infrastructure** | Makefile Manager | ✅ Complete | Enterprise Makefile execution |
-| **Infrastructure** | Hybrid Mode | ✅ Complete | Combined terraform+makefile workflows |
-| **Artifacts** | OCI Image Management | ✅ Complete | Cross-registry synchronization |
-| **Artifacts** | Helm Chart Management | ✅ Complete | Repository cloning and mirroring |
-| **Artifacts** | Terraform Modules | ✅ Complete | Git-based module management |
-| **Database** | Migration System | � In Progress | Flyway/Liquibase integration |
-| **Applications** | Helm Deployment | � In Progress | Application deployment engine |
-| **Validation** | Post-Deploy Testing | 🔄 Planned | End-to-end validation framework |
-
-### Technology Architecture
-
-#### **Core Technologies**
-
-- **Go 1.21+**: Modern Go with enhanced performance and generics
-- **Cobra**: Enterprise CLI framework with auto-completion and rich help
-- **JSON Configuration**: Type-safe configuration with comprehensive validation
-- **Zerolog**: High-performance structured logging with multiple output formats
-- **Pterm**: Professional terminal UI with progress tracking and beautiful output
-
-#### **Enterprise Libraries**
-
-- **go-containerregistry**: OCI registry operations and multi-registry authentication
-- **go-git**: Git repository operations, cloning, and version control
-- **go-playground/validator**: Comprehensive input validation with custom rules
-- **viper**: Configuration management with environment variable support
-
-#### **Infrastructure Components**
-
-- **Terraform Manager**: Multi-cloud infrastructure provisioning (AWS/Azure/GCP)
-- **Makefile Manager**: Enterprise Makefile execution with timeout and environment management
-- **Artifacts Manager**: OCI image, Helm chart, and Terraform module synchronization
-- **Progress Manager**: Real-time progress tracking with pterm integration
-
-### Execution Flow Architecture
-
-```plaintext
-User Command Input
-        │
-        ▼
-┌─────────────────┐
-│  Command Parser │ (Cobra + Viper)
-│  & Validation   │
-└─────────────────┘
-        │
-        ▼
-┌─────────────────┐
-│  Configuration  │ (JSON + go-playground/validator)
-│  Loading & Val. │
-└─────────────────┘
-        │
-        ▼
-┌─────────────────┐
-│ Infrastructure  │ (Multi-Mode Manager)
-│ Mode Selection  │ terraform|makefile|hybrid
-└─────────────────┘
-        │
-        ▼
-┌─────────────────┬─────────────────┬─────────────────┐
-│ Terraform Mgr   │ Makefile Mgr    │ Hybrid Mode     │
-│ (AWS/Azure/GCP) │ (Target Exec)   │ (Combined)      │
-└─────────────────┴─────────────────┴─────────────────┘
-        │                 │                 │
-        ▼                 ▼                 ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│  Progress UI &  │ │ Structured      │ │ Audit Trail &   │
-│  Real-time      │ │ Logging         │ │ Reporting       │
-│  Feedback       │ │ (zerolog)       │ │ (JSON Reports)  │
-└─────────────────┘ └─────────────────┘ └─────────────────┘
-        │                 │                 │
-        ▼                 ▼                 ▼
-┌─────────────────┬─────────────────┬─────────────────┐
-│ Cloud Providers │ Git Repositories│ OCI Registries  │
-│ (Infrastructure)│ (Source Code)   │ (Artifacts)     │
-└─────────────────┴─────────────────┴─────────────────┘
-```
-
-### Package Structure & Responsibilities
-
-```plaintext
-e2e-k8s-installer/
-├── main.go                          # Application entry point
-├── cmd/                            # Command implementations
-│   ├── root.go                     # Root command & global flags
-│   ├── setup.go                    # Workspace initialization
-│   ├── package_pull.go             # Artifact synchronization
-│   ├── provision_infra.go          # Infrastructure provisioning (multi-mode)
-│   ├── deploy.go                   # Application deployment
-│   ├── db_migrate.go               # Database migrations
-│   ├── post_validate.go            # Post-deployment validation
-│   ├── e2e_test.go                 # End-to-end testing
-│   └── install.go                  # Full workflow orchestration
-├── pkg/                            # Business logic packages
-│   ├── config/                     # Configuration management
-│   │   ├── types.go                # Configuration structs & validation
-│   │   └── validation.go           # Custom validation rules
-│   ├── infrastructure/             # Multi-mode infrastructure manager
-│   │   └── manager.go              # Unified terraform/makefile/hybrid interface
-│   ├── terraform/                  # Terraform operations
-│   │   └── manager.go              # Multi-cloud Terraform management
-│   ├── makefile/                   # Makefile execution
-│   │   └── manager.go              # Enterprise Makefile operations
-│   ├── artifacts/                  # Artifact synchronization
-│   │   └── manager.go              # OCI/Helm/Git operations
-│   ├── logger/                     # Structured logging
-│   └── progress/                   # Progress tracking & UI
-└── configs/                        # Sample configurations
-    ├── terraform-config.json       # Terraform mode example
-    ├── makefile-config.json        # Makefile mode example  
-    └── hybrid-config.json          # Hybrid mode example
-```
-
-## 📋 Requirements
-
-### System Prerequisites
-
-| Component | Minimum | Recommended | Notes |
-|-----------|---------|-------------|-------|
-| **Operating System** | Linux, macOS, Windows | Linux (Ubuntu 20.04+) | Cross-platform Go binary |
-| **CPU** | 2 cores | 4+ cores | For build and deployment operations |
-| **Memory** | 4GB RAM | 8GB+ RAM | Depends on artifact processing |
-| **Storage** | 10GB free | 20GB+ free | For OCI images, charts, and logs |
-| **Network** | Internet access | High bandwidth | For downloading artifacts |
-
-### Required Dependencies
-
-#### **Essential Tools** (Required for current implementation)
-
-```bash
-# Core Dependencies (Must be installed)
-kubectl 1.28+              # Kubernetes CLI - REQUIRED for set-up validation
-helm 3.8+                  # Package manager - REQUIRED for set-up validation  
-terraform 1.5+             # Infrastructure as Code - REQUIRED for set-up validation
-git 2.30+                  # Version control - Used by package-pull command
-
-# Go Development (Optional - only for building from source)
-Go 1.21+                   # Language runtime
-```
-
-#### **Cloud Provider Tools** (Choose based on target environment)
-
-```bash
-# AWS (if targeting AWS)
-aws-cli 2.0+               # AWS Command Line Interface
-aws-iam-authenticator      # AWS IAM authentication
-
-# Azure (if targeting Azure)  
-azure-cli 2.30+            # Azure Command Line Interface
-
-# Google Cloud (if targeting GCP)
-gcloud 400.0+              # Google Cloud SDK
-```
-
-### Current Implementation Dependencies
-
-The installer uses the following Go dependencies (automatically handled):
-
-```go
-// Core CLI and Configuration
-github.com/spf13/cobra v1.8.0           // CLI framework
-github.com/spf13/viper v1.17.0          // Configuration management
-github.com/go-playground/validator/v10   // Configuration validation
-
-// Enhanced User Experience  
-github.com/rs/zerolog v1.31.0           // Structured logging
-github.com/pterm/pterm v0.12.70         // Progress bars & beautiful output
-
-// Artifact Management
-github.com/google/go-containerregistry   // OCI image operations
-github.com/go-git/go-git/v5 v5.9.0      // Git repository operations
-
-// Configuration Processing
-gopkg.in/yaml.v3 v3.0.1                 // YAML processing
-```
-
-## � Quick Start
-
-### Installation Options
-
-#### Option 1: Download Pre-built Binary (Recommended)
-
-```bash
-# Download latest release (when available)
-curl -L https://github.com/judebantony/e2e-k8s-installer/releases/latest/download/e2e-k8s-installer-$(uname -s)-$(uname -m) -o e2e-k8s-installer
-chmod +x e2e-k8s-installer
-sudo mv e2e-k8s-installer /usr/local/bin/
-```
-
-#### Option 2: Build from Source (Current Method)
-
-```bash
-# Clone repository
-git clone https://github.com/judebantony/e2e-k8s-installer.git
-cd e2e-k8s-installer
-
-# Build binary
-go build -o e2e-k8s-installer .
-
-# Optional: Install globally
-sudo mv e2e-k8s-installer /usr/local/bin/
-```
-
-### Verify Installation
-
-```bash
-# Check installer version and help
-./e2e-k8s-installer --help
-
-# View available commands
-./e2e-k8s-installer --help
-```
-
-### First Run - Available Commands
-
-The installer currently provides these working commands:
-
-```bash
-# 1. Initialize workspace and validate prerequisites
-./e2e-k8s-installer set-up --workspace ./my-k8s-project
-
-# 2. Synchronize artifacts (requires configuration file)
-./e2e-k8s-installer package-pull --config installer-config.json
-
-# Check command-specific help
-./e2e-k8s-installer set-up --help
-./e2e-k8s-installer package-pull --help
-```
-
-### Quick Workflow Example
-
-```bash
-# Step 1: Create a workspace
-./e2e-k8s-installer set-up --workspace ./test-deployment
-
-# Step 2: Navigate to workspace (after successful setup)
-cd test-deployment
-
-# Step 3: Edit the generated configuration  
-vim installer-config.json
-
-# Step 4: Pull artifacts (future step - requires configuration)
-# ./e2e-k8s-installer package-pull --config installer-config.json
-```
-
-> **Note**: The `set-up` command requires `kubectl`, `helm`, and `terraform` to be installed and available in PATH for prerequisite validation.
-
-## ⚙️ Configuration
-
-### Current Configuration System
-
-The installer uses **JSON-based configuration** with comprehensive validation. The `set-up` command generates a sample configuration file that can be customized for your deployment needs.
-
-#### Configuration File Structure
-
-```json
-{
-  "installer": {
-    "version": "1.0.0",
-    "workspace": "./workspace",
-    "verbose": false,
-    "dryRun": false,
-    "logLevel": "info",
-    "logFormat": "json"
-  },
-  "artifacts": {
-    "images": {
-      "skipPull": false,
-      "vendor": {
-        "registry": "https://vendor-registry.io",
-        "auth": {
-          "token": "your-token-here"
-        }
-      },
-      "client": {
-        "registry": "https://your-registry.io",
-        "auth": {
-          "username": "your-username",
-          "password": "your-password"
-        }
-      }
-    },
-    "helm": {
-      "vendor": {
-        "url": "https://github.com/vendor/helm-charts.git",
-        "branch": "main",
-        "auth": {
-          "token": "your-git-token"
-        }
-      },
-      "client": {
-        "url": "https://github.com/your-org/helm-charts.git",
-        "branch": "main"
-      }
-    },
-    "terraform": {
-      "vendor": {
-        "url": "https://github.com/vendor/terraform-modules.git",
-        "branch": "main"
-      }
-    }
-  },
-  "infrastructure": {
-    "provisionMode": "terraform",     // "terraform" | "makefile" | "hybrid"
-    "provider": "aws",                // aws | azure | gcp
-    "region": "us-west-2",
-    "terraform": {
-      "enabled": true,
-      "workingDir": "./terraform",
-      "varsFile": "terraform.tfvars",
-      "backend": {
-        "type": "s3",
-        "config": {
-          "bucket": "my-terraform-state",
-          "key": "k8s-installer/terraform.tfstate",
-          "region": "us-west-2"
-        }
-      }
-    },
-    "makefile": {
-      "enabled": false,
-      "makefilePath": "./Makefile",
-      "workingDirectory": "./infrastructure",
-      "targets": ["init", "plan", "apply"],
-      "timeout": "30m",
-      "env": {
-        "TF_VAR_region": "us-west-2"
-      }
-    }
-  },
-  "database": {
-    "enabled": true,
-    "type": "postgresql",
-    "migration": {
-      "enabled": true,
-      "tool": "flyway",
-      "scriptsPath": "./migrations",
-      "initContainer": {
-        "image": "flyway/flyway:latest",
-        "namespace": "default"
-      }
-    }
-  },
-  "deployment": {
-    "k8s": {
-      "context": "default",
-      "namespace": "default",
-      "configPath": "~/.kube/config",
-      "timeout": "10m",
-      "waitTimeout": "5m"
-    },
-    "helm": {
-      "charts": [
-        {
-          "name": "app",
-          "path": "./charts/app",
-          "namespace": "default",
-          "values": "./values/production.yaml"
-        }
-      ]
-    },
-    "validation": {
-      "podHealth": true,
-      "serviceHealth": true,
-      "timeout": "5m",
-      "retryInterval": "30s"
-    }
-  },
-  "validation": {
-    "preInstall": {
-      "enabled": true,
-      "checks": ["prerequisites", "connectivity", "permissions"]
-    },
-    "postInstall": {
-      "enabled": true,
-      "healthChecks": [
-        {
-          "url": "http://localhost:8080/health",
-          "method": "GET",
-          "expectedStatus": 200,
-          "timeout": "30s",
-          "retries": 3,
-          "interval": "10s"
-        }
-      ]
-    }
-  }
-}
-```
-
-### Multi-Mode Infrastructure Configuration Examples
+### Multi-Mode Infrastructure Provisioning
 
 The installer supports three distinct infrastructure provisioning modes:
 
-#### **Terraform Mode Configuration**
+#### **Terraform Mode** 🏗️
+
+Pure Terraform-based infrastructure provisioning for cloud-native deployments.
+
+#### **Makefile Mode** ⚙️
+
+Makefile-based workflows for custom provisioning scripts and legacy systems.
+
+#### **Hybrid Mode** 🔄
+
+Combined approach where Makefiles orchestrate Terraform modules internally.
+
+### System Architecture
+
+```plaintext
+┌─────────────────────────────────────────────────────────────────────┐
+│                      CLI Application (main.go)                      │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Command Layer (cmd/)                          │
+│  setup | package-pull | provision-infra | deploy | db-migrate      │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+┌─────────────────────────────────────────────────────────────────────┐
+│                   Business Logic Layer (pkg/)                      │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐       │
+│  │ infrastructure/ │ │   artifacts/    │ │    config/      │       │
+│  │ Multi-Mode Mgr  │ │ OCI/Helm/Git    │ │ JSON Validation │       │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘       │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐       │
+│  │   terraform/    │ │   makefile/     │ │ logger/progress │       │
+│  │   Operations    │ │   Execution     │ │ UI Components   │       │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘       │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+┌─────────────────────────────────────────────────────────────────────┐
+│              External Integrations                                  │
+│  Cloud Providers | OCI Registries | Git Repositories               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Package Structure
+
+```plaintext
+e2e-k8s-installer/
+├── main.go                         # Application entry point
+├── cmd/                           # Command implementations
+│   ├── setup.go                   # Workspace initialization
+│   ├── package_pull.go            # Artifact synchronization
+│   ├── provision_infra.go         # Multi-mode infrastructure
+│   ├── deploy.go                  # Application deployment
+│   └── install.go                 # Full workflow orchestration
+├── pkg/                          # Business logic
+│   ├── infrastructure/           # Multi-mode infrastructure manager
+│   ├── terraform/               # Terraform operations
+│   ├── makefile/                # Makefile execution
+│   ├── artifacts/               # OCI/Helm/Git management
+│   ├── config/                  # Configuration & validation
+│   └── logger/                  # Structured logging & progress
+└── configs/                     # Sample configurations
+```
+
+## ⚙️ Configuration
+
+### Multi-Mode Infrastructure Examples
+
+**Terraform Mode:**
 
 ```json
 {
@@ -986,21 +277,13 @@ The installer supports three distinct infrastructure provisioning modes:
     "terraform": {
       "enabled": true,
       "workingDir": "./terraform",
-      "varsFile": "terraform.tfvars",
-      "backend": {
-        "type": "s3",
-        "config": {
-          "bucket": "my-terraform-state",
-          "key": "k8s-installer/terraform.tfstate",
-          "region": "us-west-2"
-        }
-      }
+      "varsFile": "terraform.tfvars"
     }
   }
 }
 ```
 
-#### **Makefile Mode Configuration**
+**Makefile Mode:**
 
 ```json
 {
@@ -1009,796 +292,212 @@ The installer supports three distinct infrastructure provisioning modes:
     "makefile": {
       "enabled": true,
       "makefilePath": "./Makefile",
-      "workingDirectory": "./infrastructure",
-      "targets": ["init", "plan", "apply", "destroy"],
-      "timeout": "30m",
-      "env": {
-        "AWS_REGION": "us-west-2",
-        "TF_VAR_cluster_name": "my-k8s-cluster"
-      }
+      "targets": ["init", "plan", "apply"],
+      "timeout": "30m"
     }
   }
 }
 ```
 
-#### **Hybrid Mode Configuration**
+**Hybrid Mode:**
 
 ```json
 {
   "infrastructure": {
     "provisionMode": "hybrid",
-    "provider": "aws",
-    "region": "us-west-2",
-    "terraform": {
-      "enabled": true,
-      "workingDir": "./terraform",
-      "varsFile": "terraform.tfvars"
-    },
-    "makefile": {
-      "enabled": true,
-      "makefilePath": "./Makefile",
-      "workingDirectory": "./infrastructure",
-      "targets": ["validate", "init", "plan", "apply"],
-      "timeout": "45m",
-      "env": {
-        "TF_VAR_region": "us-west-2",
-        "TF_VAR_environment": "production"
-      }
-    }
+    "terraform": { "enabled": true },
+    "makefile": { "enabled": true }
   }
 }
 ```
 
-### Configuration Validation
+## 🎮 Usage
 
-The configuration system includes comprehensive validation:
-
-- **Required Fields**: Validates all mandatory configuration fields
-- **Format Validation**: Ensures URLs, durations, and other formats are correct
-- **File Existence**: Validates file paths and directories exist
-- **Semantic Validation**: Cross-field validation for logical consistency
-
-### Generating Configuration
+### Quick Start
 
 ```bash
-# Generate sample configuration with set-up command
-./e2e-k8s-installer set-up --workspace ./my-project --config-file my-config.json
+# 1. Initialize workspace
+./e2e-k8s-installer setup --workspace ./my-k8s-project
 
-# This creates a workspace with:
-# - Directory structure
-# - Sample installer-config.json file
-# - README with usage instructions
-```
-
-## 🎮 Usage Guide
-
-### Currently Available Commands
-
-The installer provides three core working commands with comprehensive multi-mode infrastructure provisioning:
-
-```bash
-# Core Working Commands
-./e2e-k8s-installer setup        # Initialize workspace and validate prerequisites  
-./e2e-k8s-installer package-pull  # Synchronize OCI images, Helm charts, and Terraform modules
-./e2e-k8s-installer provision-infra # Multi-mode infrastructure provisioning (terraform/makefile/hybrid)
-
-# Built-in Help System
-./e2e-k8s-installer --help        # Show all available commands
-./e2e-k8s-installer [command] --help  # Command-specific help
-```
-
-### Planned Commands (In Development)
-
-```bash
-# Application Management (Coming Soon)
-./e2e-k8s-installer db-migrate        # Run database migrations
-./e2e-k8s-installer deploy            # Deploy applications with Helm
-./e2e-k8s-installer post-validate     # Post-deployment validation
-./e2e-k8s-installer e2e-test          # End-to-end testing
-./e2e-k8s-installer install           # Orchestrated full installation
-```
-
-### Command Usage Examples
-
-#### 1. set-up Command
-
-Initialize a workspace and validate prerequisites:
-
-```bash
-# Basic workspace setup
-./e2e-k8s-installer set-up --workspace ./my-k8s-project
-
-# Custom configuration file name
-./e2e-k8s-installer set-up --workspace ./project --config-file custom-config.json
-
-# Force overwrite existing files
-./e2e-k8s-installer set-up --workspace ./project --force
-
-# Dry run to see what would be created
-./e2e-k8s-installer set-up --workspace ./project --dry-run
-```
-
-**What it does:**
-
-- Creates workspace directory structure
-- Validates prerequisites (kubectl, helm, terraform)
-- Generates sample installer-config.json
-- Creates subdirectories for artifacts, logs, charts, etc.
-- Provides comprehensive README with usage instructions
-
-#### 2. package-pull Command
-
-Synchronize artifacts from vendor to client registries:
-
-```bash
-# Pull all artifacts (images, charts, terraform)
-./e2e-k8s-installer package-pull --config installer-config.json
-
-# Pull only OCI images  
-./e2e-k8s-installer package-pull --config config.json --images-only
-
-# Pull only Helm charts
-./e2e-k8s-installer package-pull --config config.json --helm-only
-
-# Pull only Terraform modules
-./e2e-k8s-installer package-pull --config config.json --terraform-only
-
-# Dry run to see what would be pulled
-./e2e-k8s-installer package-pull --config config.json --dry-run
-
-# Disable parallel processing
-./e2e-k8s-installer package-pull --config config.json --parallel=false
-```
-
-**What it does:**
-
-- Synchronizes OCI images between registries with authentication
-- Clones and mirrors Helm chart repositories
-- Manages Terraform module repositories
-- Provides real-time progress tracking with beautiful UI
-- Validates all artifacts after synchronization
-
-#### 3. provision-infra Command
-
-Deploy infrastructure using multi-mode provisioning (terraform/makefile/hybrid):
-
-```bash
-# Multi-mode infrastructure provisioning
-./e2e-k8s-installer provision-infra --config installer-config.json
-
-# Terraform mode (pure Terraform)
-./e2e-k8s-installer provision-infra --config terraform-config.json
-
-# Makefile mode (pure Makefile workflows)  
-./e2e-k8s-installer provision-infra --config makefile-config.json
-
-# Hybrid mode (Makefile orchestrating Terraform modules)
-./e2e-k8s-installer provision-infra --config hybrid-config.json
-
-# Plan-only mode (see what would be provisioned)
-./e2e-k8s-installer provision-infra --config config.json --plan-only
-
-# Dry run to validate configuration
-./e2e-k8s-installer provision-infra --config config.json --dry-run
-```
-
-**What it does:**
-
-- **Multi-Mode Support**: Supports terraform, makefile, and hybrid provisioning modes
-- **Cloud-Native Deployment**: Provisions Kubernetes clusters and managed services
-- **Infrastructure Validation**: Runs embedded health checks and validation
-- **State Management**: Manages Terraform state and Makefile execution context
-- **Progress Tracking**: Real-time progress with beautiful terminal UI
-- **Comprehensive Reporting**: Generates detailed infrastructure reports
-
-**Configuration Examples:**
-
-```json
-{
-  "infrastructure": {
-    "provisionMode": "terraform",     // "terraform" | "makefile" | "hybrid"
-    "provider": "aws",                // aws | azure | gcp
-    "region": "us-west-2",
-    "terraform": {
-      "enabled": true,
-      "workingDir": "./terraform",
-      "varsFile": "terraform.tfvars"
-    }
-  }
-}
-```
-
-```json
-{
-  "infrastructure": {
-    "provisionMode": "makefile",
-    "makefile": {
-      "enabled": true,
-      "makefilePath": "./Makefile",
-      "workingDirectory": "./infrastructure",
-      "targets": ["init", "plan", "apply"]
-    }
-  }
-}
-```
-
-### Current Workflow
-
-```bash
-# Step 1: Initialize workspace
-./e2e-k8s-installer setup --workspace ./my-deployment
-
-# Step 2: Navigate to workspace
-cd my-deployment
-
-# Step 3: Edit configuration (customize for your environment)
+# 2. Navigate and configure
+cd my-k8s-project
 vim installer-config.json
 
-# Step 4: Synchronize artifacts
+# 3. Synchronize artifacts
 ./e2e-k8s-installer package-pull --config installer-config.json
 
-# Step 5: Provision infrastructure (NEW - Multi-mode support)
+# 4. Provision infrastructure
 ./e2e-k8s-installer provision-infra --config installer-config.json
 
-# Future steps (coming soon):
-# Step 6: ./e2e-k8s-installer deploy --config installer-config.json
-# Step 7: ./e2e-k8s-installer post-validate --config installer-config.json
+# 5. Deploy applications (coming soon)
+# ./e2e-k8s-installer deploy --config installer-config.json
 ```
 
-### Global Flags
+### Available Commands
 
-Available across all commands:
+| Command | Status | Description |
+|---------|---------|-------------|
+| `setup` | ✅ Ready | Initialize workspace and validate prerequisites |
+| `package-pull` | ✅ Ready | Synchronize OCI images, Helm charts, Terraform modules |
+| `provision-infra` | ✅ Ready | Deploy infrastructure (terraform/makefile/hybrid modes) |
+| `deploy` | 🚧 In Progress | Deploy applications with Helm |
+| `db-migrate` | 🚧 In Progress | Run database migrations |
+| `install` | 🔄 Planned | Complete workflow orchestration |
+
+### Command Examples
+
+**Setup workspace:**
 
 ```bash
---config string        # Config file (default: $HOME/.e2e-k8s-installer.yaml)
---config-path string   # Path to configuration directory  
---dry-run              # Show what would be done without executing
---verbose, -v          # Enable verbose output
---help, -h             # Show help information
+./e2e-k8s-installer setup --workspace ./project --config-file custom.json
 ```
 
-## � Project Structure
+**Pull artifacts:**
 
-```text
-e2e-k8s-installer/
-├── cmd/                    # CLI command implementations
-│   ├── root.go            # Root command and global flags
-│   ├── install.go         # Installation command logic
-│   ├── validate.go        # Validation command logic
-│   ├── status.go          # Status checking command
-│   ├── upgrade.go         # Cluster upgrade command
-│   ├── config.go          # Configuration management
-│   └── version.go         # Version information
-├── pkg/                   # Core business logic packages
-│   ├── config/           # Configuration parsing and validation
-│   ├── installer/        # Core installation orchestration
-│   ├── validation/       # Environment and prerequisite validation
-│   ├── cloud/           # Cloud provider implementations
-│   │   ├── aws/         # AWS-specific operations
-│   │   ├── azure/       # Azure-specific operations
-│   │   ├── gcp/         # GCP-specific operations
-│   │   └── onprem/      # On-premises deployment
-│   ├── k8s/             # Kubernetes cluster management
-│   ├── monitoring/      # Monitoring stack deployment
-│   ├── security/        # Security framework and policies
-│   └── utils/           # Shared utilities and helpers
-├── terraform/            # Infrastructure as Code modules
-│   ├── aws/             # AWS infrastructure templates
-│   ├── azure/           # Azure infrastructure templates
-│   └── gcp/             # GCP infrastructure templates
-├── charts/              # Helm charts for applications
-│   ├── monitoring/      # Prometheus, Grafana charts
-│   ├── security/        # Security tool charts
-│   └── logging/         # ELK stack charts
-├── scripts/             # Utility and automation scripts
-├── docs/               # Comprehensive documentation
-├── examples/           # Sample configurations
-├── tests/              # Test suites
-├── .github/            # GitHub workflows and templates
-└── bin/                # Built binaries (gitignored)
+```bash
+./e2e-k8s-installer package-pull --config config.json --images-only
 ```
 
-## 🔒 Security Features
+**Provision infrastructure:**
+
+```bash
+# Terraform mode
+./e2e-k8s-installer provision-infra --config terraform-config.json
+
+# Makefile mode  
+./e2e-k8s-installer provision-infra --config makefile-config.json
+
+# Plan only (dry run)
+./e2e-k8s-installer provision-infra --config config.json --plan-only
+```
+
+## 📋 Requirements
+
+### System Prerequisites
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| **OS** | Linux, macOS, Windows | Linux (Ubuntu 20.04+) |
+| **CPU** | 2 cores | 4+ cores |
+| **Memory** | 4GB RAM | 8GB+ RAM |
+| **Storage** | 10GB free | 20GB+ free |
+
+### Required Dependencies
+
+```bash
+# Essential tools (required)
+kubectl 1.28+     # Kubernetes CLI
+helm 3.8+         # Package manager  
+terraform 1.5+    # Infrastructure as Code
+git 2.30+         # Version control
+
+# Cloud provider tools (choose based on target)
+aws-cli 2.0+      # For AWS deployments
+azure-cli 2.30+   # For Azure deployments
+gcloud 400.0+     # For GCP deployments
+```
+
+## 🚀 Installation
+
+### Option 1: Download Binary (Recommended)
+
+```bash
+# Download latest release
+curl -L https://github.com/judebantony/e2e-k8s-installer/releases/latest/download/e2e-k8s-installer-$(uname -s)-$(uname -m) -o e2e-k8s-installer
+chmod +x e2e-k8s-installer
+sudo mv e2e-k8s-installer /usr/local/bin/
+```
+
+### Option 2: Build from Source
+
+```bash
+git clone https://github.com/judebantony/e2e-k8s-installer.git
+cd e2e-k8s-installer
+go build -o e2e-k8s-installer .
+sudo mv e2e-k8s-installer /usr/local/bin/
+```
+
+### Verify Installation
+
+```bash
+e2e-k8s-installer --help
+e2e-k8s-installer setup --help
+```
+
+## 🔒 Security & Enterprise Features
 
 ### Current Security Implementation
 
-The installer currently implements enterprise-grade security patterns:
+- **✅ Input Validation**: Comprehensive configuration validation
+- **✅ Credential Security**: Secure handling of registry credentials and tokens
+- **✅ Network Security**: TLS-enabled communications
+- **✅ Audit Logging**: Complete audit trail with structured logging
 
-#### **Input Validation & Configuration Security** ✅
+### Planned Security Features
 
-```json
-{
-  "installer": {
-    "logLevel": "info",        // Validated enum: debug, info, warn, error
-    "workspace": "./workspace", // Path validation and sanitization
-    "dryRun": false            // Boolean validation
-  },
-  "artifacts": {
-    "images": {
-      "vendor": {
-        "registry": "https://vendor-registry.io", // URL validation
-        "auth": {
-          "token": "***"                          // Secure credential handling
-        }
-      }
-    }
-  }
-}
-```
-
-**Current Security Features:**
-
-- **Configuration Validation**: Comprehensive input validation using go-playground/validator
-- **Credential Security**: Secure handling of registry credentials and tokens
-- **Path Sanitization**: Safe file system operations with proper path validation
-- **Network Security**: TLS-enabled communications with all external registries
-- **Audit Logging**: Complete audit trail using structured logging (zerolog)
-
-#### **Planned Security Framework** 🔄
-
-The following security features are planned for future releases:
-
-##### RBAC (Role-Based Access Control)
-
-```yaml
-# Future implementation
-security:
-  rbac:
-    enabled: true
-    custom_roles:
-      - name: "developer"
-        rules:
-          - apiGroups: ["apps"]
-            resources: ["deployments"]
-            verbs: ["get", "list", "create", "update"]
-```
-
-##### Network Policies
-
-```yaml
-# Future implementation
-security:
-  network_policies:
-    enabled: true
-    default_deny: true
-    policies:
-      - name: "allow-ingress"
-        spec:
-          podSelector: {}
-          policyTypes: ["Ingress"]
-```
-
-##### Security Scanning
-
-- **Container Scanning**: Trivy integration for vulnerability detection (planned)
-- **Runtime Security**: Falco for runtime threat detection (planned)
-- **Policy Enforcement**: OPA Gatekeeper for admission control (planned)
-- **Compliance**: CIS Kubernetes Benchmark validation (planned)
-
-### Current Security Best Practices
-
-1. **Secure Configuration**: JSON-based configuration with comprehensive validation
-2. **Credential Management**: Secure token and password handling
-3. **Network Security**: TLS-only communications with external services
-4. **Audit Logging**: Structured logging with audit trail capabilities
-5. **Input Sanitization**: All user inputs validated and sanitized
-
-### Security Roadmap
-
-| Feature | Current Status | Planned Release |
-|---------|----------------|-----------------|
-| Input Validation | ✅ Implemented | Current |
-| Credential Security | ✅ Implemented | Current |
-| Network Security | ✅ Implemented | Current |
-| Audit Logging | ✅ Implemented | Current |
-| RBAC Integration | 🔄 Planned | v2.0 |
-| Network Policies | 🔄 Planned | v2.0 |
-| Security Scanning | 🔄 Planned | v2.1 |
-| Compliance Checks | 🔄 Planned | v2.1 |
+- **🔄 RBAC Integration**: Role-based access control for Kubernetes
+- **🔄 Network Policies**: Pod-to-pod communication control
+- **🔄 Security Scanning**: Container vulnerability detection
+- **🔄 Compliance**: CIS Kubernetes benchmark validation
 
 ## 📊 Monitoring & Observability
 
-### Current Monitoring Implementation
-
-The installer currently provides comprehensive logging and progress tracking:
-
-#### **Built-in Monitoring Features** ✅
-
-```bash
-# Structured Logging (Current Implementation)
-./e2e-k8s-installer package-pull --config config.json --verbose
-
-# Sample log output (JSON structured):
-{
-  "level": "info",
-  "time": "2024-01-20T10:30:15Z",
-  "message": "Starting OCI image synchronization",
-  "component": "package-pull",
-  "source_registry": "vendor-registry.io",
-  "target_registry": "client-registry.io"
-}
-```
-
-**Current Capabilities:**
+### Built-in Features
 
 - **Structured Logging**: High-performance JSON logging with zerolog
-- **Progress Tracking**: Beautiful progress bars and real-time status with pterm  
-- **Command Auditing**: Complete audit trail of all operations
-- **Error Tracking**: Detailed error reporting with context
-- **Performance Metrics**: Command execution timing and resource usage
+- **Progress Tracking**: Real-time progress bars with pterm
+- **Command Auditing**: Complete audit trail of operations
+- **Performance Metrics**: Command timing and resource usage
 
-#### **Log Levels & Configuration**
+### Planned Monitoring Stack
 
-```json
-{
-  "installer": {
-    "logLevel": "info",     // debug, info, warn, error
-    "logFormat": "json",    // json, text
-    "verbose": true         // Enhanced output
-  }
-}
-```
+- **Prometheus**: Metrics collection and alerting
+- **Grafana**: Visualization dashboards
+- **ELK Stack**: Centralized log management
+- **Jaeger**: Distributed tracing
 
-### Planned Monitoring Stack 🔄
+## 🔧 Troubleshooting
 
-The following monitoring components are planned for future Kubernetes deployments:
+### Common Issues
 
-#### Prometheus Stack
-
-- **Prometheus Server**: Metrics collection and storage (planned)
-- **Alertmanager**: Alert routing and management (planned)
-- **Node Exporter**: System metrics collection (planned)
-- **kube-state-metrics**: Kubernetes object metrics (planned)
-
-#### Grafana Dashboards
-
-- **Cluster Overview**: High-level cluster health (planned)
-- **Node Metrics**: System resource utilization (planned)
-- **Pod Metrics**: Application performance (planned)
-- **Security Dashboard**: Security event monitoring (planned)
-
-#### Logging Infrastructure
-
-- **Elasticsearch**: Log storage and indexing (planned)
-- **Logstash**: Log processing and enrichment (planned)
-- **Kibana**: Log visualization and analysis (planned)
-- **Fluentd**: Log collection and forwarding (planned)
-
-### Current vs Planned Features
-
-| Feature | Current Status | Description |
-|---------|----------------|-------------|
-| **CLI Logging** | ✅ Implemented | Structured JSON/text logging with zerolog |
-| **Progress UI** | ✅ Implemented | Real-time progress bars with pterm |
-| **Command Auditing** | ✅ Implemented | Complete audit trail of operations |
-| **Error Reporting** | ✅ Implemented | Detailed error context and stack traces |
-| **Performance Tracking** | ✅ Implemented | Command timing and resource usage |
-| **Prometheus Integration** | 🔄 Planned | Cluster metrics collection |
-| **Grafana Dashboards** | 🔄 Planned | Visual monitoring interface |
-| **ELK Stack** | 🔄 Planned | Centralized log management |
-| **Alerting** | 🔄 Planned | Automated alert notifications |
-
-### Custom Monitoring Configuration (Future)
-
-```yaml
-# Planned monitoring configuration
-monitoring:
-  prometheus:
-    enabled: true
-    retention: "30d"
-    storage: "100Gi"
-    resources:
-      requests:
-        cpu: "500m"
-        memory: "1Gi"
-    alerting:
-      enabled: true
-      rules:
-        - alert: "HighCPUUsage"
-          expr: "cpu_usage > 80"
-          for: "5m"
-  grafana:
-    enabled: true
-    admin_password: "secure_password"
-    persistence:
-      enabled: true
-      size: "10Gi"
-  logging:
-    elasticsearch:
-      enabled: true
-      replicas: 3
-      storage: "50Gi"
-```
-
-## 🚀 Cloud Provider Support
-
-### AWS EKS Integration
-
-```yaml
-# AWS-specific configuration
-cloud:
-  aws:
-    region: "us-west-2"
-    vpc_cidr: "10.0.0.0/16"
-    instance_types:
-      - "t3.medium"    # General purpose
-      - "c5.large"     # Compute optimized
-    node_groups:
-      - name: "general"
-        instance_type: "t3.medium" 
-        min_size: 1
-        max_size: 10
-        desired_size: 3
-    addons:
-      - "vpc-cni"
-      - "coredns" 
-      - "kube-proxy"
-```
-
-### Azure AKS Integration
-
-```yaml
-# Azure-specific configuration  
-cloud:
-  azure:
-    location: "East US"
-    resource_group: "k8s-cluster-rg"
-    vm_size: "Standard_D2s_v3"
-    node_pools:
-      - name: "system"
-        vm_size: "Standard_D2s_v3"
-        node_count: 3
-        mode: "System"
-      - name: "user"  
-        vm_size: "Standard_D4s_v3"
-        node_count: 2
-        mode: "User"
-```
-
-### GCP GKE Integration
-
-```yaml
-# GCP-specific configuration
-cloud:
-  gcp:
-    project: "my-gcp-project"
-    region: "us-central1"
-    zone: "us-central1-a"
-    machine_type: "e2-standard-4"
-    node_pools:
-      - name: "default-pool"
-        machine_type: "e2-standard-4"
-        disk_size: "100"
-        node_count: 3
-```
-
-## 🔧 Troubleshooting & Support
-
-### Current Command Debugging
-
-#### Debug Mode for Current Commands
+**Prerequisites validation failed:**
 
 ```bash
-# Enable verbose logging for set-up command
-./e2e-k8s-installer set-up --workspace ./test --verbose
+# Check required tools
+which kubectl helm terraform git
 
-# Enable verbose logging for package-pull command  
-./e2e-k8s-installer package-pull --config config.json --verbose
-
-# Dry run mode (see what would be done without executing)
-./e2e-k8s-installer set-up --workspace ./test --dry-run
-./e2e-k8s-installer package-pull --config config.json --dry-run
-
-# Check command help
-./e2e-k8s-installer set-up --help
-./e2e-k8s-installer package-pull --help
+# Install missing tools
+brew install kubectl helm terraform git  # macOS
 ```
 
-### Common Issues & Solutions (Current Implementation)
-
-#### Issue: set-up Command Prerequisites Failed
-
-```bash
-# Check if required tools are installed
-which kubectl
-which helm  
-which terraform
-
-# Install missing prerequisites:
-# kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
-
-# helm
-brew install helm
-
-# terraform  
-brew install terraform
-```
-
-**Solution**: Ensure kubectl, helm, and terraform are installed and available in PATH.
-
-#### Issue: package-pull Registry Authentication Failures
+**Registry authentication failed:**
 
 ```bash
 # Test registry connectivity
 curl -v https://your-registry.io/v2/
 
-# Verify authentication credentials in config
-cat installer-config.json | grep -A5 "auth"
-
-# Test Docker login (if using Docker-compatible registry)
-echo "your-password" | docker login your-registry.io -u your-username --password-stdin
+# Verify credentials in config
+cat installer-config.json | jq .artifacts.images.vendor.auth
 ```
 
-**Solution**: Verify registry URLs, credentials, and network connectivity.
-
-#### Issue: Configuration File Validation Errors
+**Configuration validation errors:**
 
 ```bash
 # Validate JSON syntax
 jq . installer-config.json
 
-# Check for required fields
-./e2e-k8s-installer package-pull --config installer-config.json --dry-run
+# Dry run to check configuration
+./e2e-k8s-installer provision-infra --config config.json --dry-run
 ```
 
-**Common validation errors:**
-
-- Invalid JSON syntax
-- Missing required fields (`installer.workspace`, `artifacts.images.vendor.registry`)
-- Invalid URL formats in registry configurations
-- Missing authentication credentials
-
-#### Issue: Workspace Permission Problems
+### Debug Mode
 
 ```bash
-# Check workspace directory permissions
-ls -la ./workspace-directory/
+# Enable verbose logging
+./e2e-k8s-installer setup --workspace ./test --verbose
 
-# Fix permissions if needed
-chmod 755 ./workspace-directory/
-chown $USER:$USER ./workspace-directory/
-```
-
-**Solution**: Ensure the installer has read/write permissions to the workspace directory.
-
-#### Issue: Git Repository Access Problems
-
-```bash
-# Test Git repository access
-git clone https://github.com/vendor/helm-charts.git
-
-# Check SSH key setup (for SSH URLs)
-ssh -T git@github.com
-
-# Verify Git credentials
-git config --list | grep user
-```
-
-**Solution**: Ensure Git credentials are properly configured for repository access.
-
-### Planned Troubleshooting Features 🔄
-
-Future releases will include:
-
-#### Issue: Cloud Authentication Failures
-
-```bash
-# AWS (planned)
-aws configure list
-aws sts get-caller-identity
-
-# Azure (planned)
-az account show
-az ad signed-in-user show
-
-# GCP (planned)
-gcloud auth list
-gcloud config list
-```
-
-#### Issue: Network Connectivity Problems
-
-```bash
-# Test connectivity (planned)
-k8s-installer validate network
-
-# Check DNS resolution (planned)
-nslookup kubernetes.default.svc.cluster.local
-
-# Verify firewall rules (planned)
-kubectl get networkpolicies --all-namespaces
-```
-
-#### Issue: Resource Quota Exceeded
-
-```bash
-# Check resource usage (planned)
-kubectl describe nodes
-kubectl top nodes
-kubectl top pods --all-namespaces
-
-# Check quotas (planned)
-kubectl describe quota --all-namespaces
-```
-
-### Support Bundle Collection (Planned)
-
-```bash
-# Generate comprehensive support bundle (planned)
-e2e-k8s-installer support-bundle \
-  --output support-$(date +%Y%m%d-%H%M%S).tar.gz \
-  --include-logs \
-  --include-config \
-  --include-cluster-info
-```
-
-### Getting Help
-
-For current implementation issues:
-
-1. **Check Command Help**: Use `--help` flag for any command
-2. **Enable Verbose Logging**: Use `--verbose` flag for detailed output
-3. **Use Dry Run**: Test with `--dry-run` before actual execution
-4. **Validate Configuration**: Ensure JSON syntax and required fields
-5. **Check Prerequisites**: Verify kubectl, helm, terraform installation
-
-## 🧪 Testing & Validation
-
-### Test Suite
-
-```bash
-# Run all validation tests
-k8s-installer test suite
-
-# Run specific test categories
-k8s-installer test --category security
-k8s-installer test --category networking  
-k8s-installer test --category monitoring
-
-# Performance benchmarking
-k8s-installer benchmark --duration 10m
-```
-
-### CI/CD Integration
-
-```yaml
-# GitHub Actions example
-name: K8s Installer Test
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '1.21'
-      - name: Build installer
-        run: go build -o k8s-installer .
-      - name: Run validation
-        run: ./k8s-installer validate system
-```
-
-## 📚 Documentation
-
-### Additional Resources
-
-- 📖 **[Installation Guide](docs/installation.md)**: Detailed installation instructions
-- 🔧 **[Configuration Reference](docs/configuration.md)**: Complete configuration options  
-- 🛡️ **[Security Guide](docs/security.md)**: Security best practices
-- 📊 **[Monitoring Guide](docs/monitoring.md)**: Observability setup
-- 🚀 **[Deployment Examples](docs/examples/)**: Real-world deployment scenarios
-- 🐛 **[Troubleshooting](docs/troubleshooting.md)**: Common issues and solutions
-
-### API Reference
-
-```bash
-# Generate API documentation
-k8s-installer docs generate --format markdown --output docs/api/
-
-# View configuration schema
-k8s-installer config schema
+# Dry run mode
+./e2e-k8s-installer package-pull --config config.json --dry-run
 ```
 
 ## 🤝 Contributing
@@ -1806,54 +505,41 @@ k8s-installer config schema
 ### Development Setup
 
 ```bash
-# Clone repository
 git clone https://github.com/judebantony/e2e-k8s-installer.git
 cd e2e-k8s-installer
-
-# Install dependencies
 go mod tidy
-
-# Run tests
 go test ./...
-
-# Build and test
-go build -o bin/k8s-installer .
-./bin/k8s-installer validate system
+go build -o bin/e2e-k8s-installer .
 ```
 
 ### Contribution Guidelines
 
-1. **Fork the repository** and create a feature branch
-2. **Write tests** for new functionality
-3. **Follow Go conventions** and run `gofmt`
-4. **Update documentation** for new features
-5. **Submit a pull request** with detailed description
+1. Fork the repository and create a feature branch
+2. Write tests for new functionality
+3. Follow Go conventions and run `gofmt`
+4. Update documentation for new features
+5. Submit a pull request with detailed description
+
+## 📚 Documentation & Support
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/judebantony/e2e-k8s-installer/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/judebantony/e2e-k8s-installer/discussions)
+- 📖 **Documentation**: [docs/](docs/)
+- 🌟 **Roadmap**: [ROADMAP.md](ROADMAP.md)
 
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support & Community
-
-- 🐛 **Issues**: [GitHub Issues](https://github.com/judebantony/e2e-k8s-installer/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/judebantony/e2e-k8s-installer/discussions)
-- 📧 **Email**: [support@k8s-installer.io](mailto:support@k8s-installer.io)
-- 📖 **Documentation**: [docs/](docs/)
-- 🌟 **Roadmap**: [ROADMAP.md](ROADMAP.md)
-
 ---
 
-## 🎯 Roadmap & Future Features
+## 🎯 Roadmap
 
-- [ ] **Air-gapped Installation**: Complete offline deployment support
-- [ ] **Service Mesh Integration**: Istio/Linkerd automatic setup
-- [ ] **GitOps Integration**: ArgoCD/Flux deployment workflows
-- [ ] **Multi-cluster Management**: Cross-cluster networking and policies
-- [ ] **Backup & Recovery**: Automated backup and disaster recovery
-- [ ] **Cost Optimization**: Resource usage optimization recommendations
+- **✅ Phase 1 (v1.1.0)**: Multi-mode infrastructure provisioning - **COMPLETED**
+- **🚧 Phase 2 (v1.2.0)**: Database migrations and application deployment - **IN PROGRESS**  
+- **🔄 Phase 3 (v1.3.0)**: Validation and testing framework - **PLANNED**
+- **🔄 Phase 4 (v1.4.0)**: Complete workflow orchestration - **PLANNED**
 
 ---
 
 ***Made with ❤️ by Jude Antony***
-
-*Star ⭐ this repository if you find it helpful!*
