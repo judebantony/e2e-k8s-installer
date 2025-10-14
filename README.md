@@ -69,7 +69,7 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - ✅ **Application Deployment**: Helm-based deployment in configured order with pod readiness + health URL checks
 - ✅ **Post-validation**: Comprehensive checks, housekeeping, and E2E smoke tests
 
-## Operation modes
+### 🎮 Operation modes
 
 - 🎯 **Interactive & Config-driven Modes**: Guided configuration with user prompts or fully automated using configuration files
 - 🎯 **Idempotent Operations**: All steps are resume-safe and can be re-run with structured output and progress bars
