@@ -1,5 +1,5 @@
 
-# E2E Product Kube-native Installer
+# E2E Kubernetes-native Product Installer
 
 A comprehensive, production-ready Go-based CLI tool for deploying and managing Kubernetes clusters across multiple cloud environments with enterprise-grade security, monitoring, and validation capabilities in air-gapped environments.
 
