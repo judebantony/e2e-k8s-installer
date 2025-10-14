@@ -29,9 +29,7 @@ Features:
 - Infrastructure provisioning with Terraform
 - Application deployment with Helm charts
 - Comprehensive monitoring and logging
-- Security and compliance framework
-- Idempotent operations with rollback capability`,
-	Version: "1.0.0",
+- End-to-end testing and validation`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -53,14 +51,9 @@ func init() {
 	viper.BindPFlag("dry-run", rootCmd.PersistentFlags().Lookup("dry-run"))
 	viper.BindPFlag("config-path", rootCmd.PersistentFlags().Lookup("config-path"))
 
-	// Add subcommands
-	rootCmd.AddCommand(installCmd)
-	rootCmd.AddCommand(validateCmd)
-	rootCmd.AddCommand(upgradeCmd)
-	rootCmd.AddCommand(rollbackCmd)
-	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(configCmd)
-	rootCmd.AddCommand(versionCmd)
+	// Add subcommands that we know work
+	rootCmd.AddCommand(setupCmd)
+	rootCmd.AddCommand(packagePullCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

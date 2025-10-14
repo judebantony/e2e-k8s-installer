@@ -82,6 +82,109 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - **Post-Deployment Housekeeping**: Support post-deployment housekeeping: log rotation, DB backup/restore, post-deploy scripts
 - **Application Upgrades**: Support application upgrades in an idempotent and rollback-safe manner
 
+## 🧭 Flow Diagram
+
+```mermaid
+flowchart TD
+    A[🏁 set-up] --> B[📦 package-pull]
+    B --> C[☁️ provision-infra]
+    C --> D[🧩 db-migrate]
+    D --> E[🚀 deploy]
+    E --> F[🔍 post-validate]
+    F --> G[✅ e2e-test]
+    G --> H[📊 install-summary.json]
+
+    subgraph "💡 Each Step is Idempotent & Re-runnable"
+        A
+        B
+        C
+        D
+        E
+        F
+        G
+    end
+
+    style A fill:#C6E2FF,stroke:#0366d6,stroke-width:2px
+    style B fill:#E0F7FA,stroke:#00ACC1,stroke-width:2px
+    style C fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px
+    style D fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px
+    style E fill:#E8EAF6,stroke:#3949AB,stroke-width:2px
+    style F fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+    style G fill:#FBE9E7,stroke:#D84315,stroke-width:2px
+    style H fill:#FFF9C4,stroke:#F9A825,stroke-width:2px
+```
+
+## 🧱 Layered Architecture Diagram
+
+```mermaid
+graph LR
+    subgraph CLI["🧰 Installer CLI"]
+        A1[set-up]
+        A2[package-pull]
+        A3[provision-infra]
+        A4[db-migrate]
+        A5[deploy]
+        A6[post-validate]
+        A7[e2e-test]
+        A8[install (orchestrator)]
+    end
+
+    subgraph Core["⚙️ Core Framework"]
+        B1[Config Loader<br/>(JSON Schema, Validator)]
+        B2[Logger & ProgressBar<br/>(JSONL, pterm)]
+        B3[Report Generator<br/>(per-step summaries)]
+        B4[Error & Retry Handler<br/>(Idempotent logic)]
+    end
+
+    subgraph Integration["🔗 Integration Modules"]
+        C1[OCI Manager<br/>Pull/Push/Scan Images]
+        C2[Git Manager<br/>Checkout/Mirror Repos]
+        C3[Terraform Runner<br/>Infra Provisioning]
+        C4[Helm Deployer<br/>Charts & Values]
+        C5[K8s Client<br/>Health Checks & Jobs]
+        C6[DB Migration<br/>Flyway/Liquibase]
+    end
+
+    subgraph External["🌐 External Systems"]
+        D1[Vendor OCI Registries<br/>(GitHub, DockerHub, Azure)]
+        D2[Client Private Registries<br/>(Harbor, Artifactory)]
+        D3[Vendor GitHub Repos<br/>(Helm, Terraform, DB)]
+        D4[Client GitHub Repos<br/>Mirrors]
+        D5[Cloud Providers<br/>(AWS, Azure, GCP)]
+        D6[Kubernetes Cluster<br/>(OpenShift, Rancher, etc.)]
+    end
+
+    %% connections
+    A1 --> B1
+    A2 --> C1
+    A2 --> C2
+    A3 --> C3
+    A4 --> C6
+    A5 --> C4
+    A5 --> C5
+    A6 --> C5
+    A7 --> C5
+    A8 --> A2
+    A8 --> A3
+    A8 --> A4
+    A8 --> A5
+    A8 --> A6
+    A8 --> A7
+
+    C1 --> D1
+    C1 --> D2
+    C2 --> D3
+    C2 --> D4
+    C3 --> D5
+    C4 --> D6
+    C5 --> D6
+    C6 --> D6
+
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+```
+
 ## 🛠️ Installer Features
 
 ### 🎮 Modes of Operation

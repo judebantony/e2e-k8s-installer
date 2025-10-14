@@ -80,7 +80,6 @@ terraform/.terraform.lock.hcl
 
 # Cloud provider credentials
 **/credentials
-**/config
 .aws/
 .azure/
 .gcp/
