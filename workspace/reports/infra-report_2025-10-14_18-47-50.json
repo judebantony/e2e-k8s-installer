@@ -1,0 +1,26 @@
+{
+  "infrastructure": {
+    "healthCheck": {
+      "url": "http://localhost:8080/health",
+      "method": "GET",
+      "expectedStatus": 200,
+      "timeout": "30s",
+      "retries": 3,
+      "interval": "10s"
+    },
+    "makefileEnabled": true,
+    "mode": "hybrid",
+    "terraformEnabled": true
+  },
+  "operation": {
+    "destroy": false,
+    "provider": "aws",
+    "provisionMode": "hybrid",
+    "region": "us-west-2",
+    "type": "provision-infra",
+    "workspace": "/Users/judebarnabasantony/git/public/e2e-k8s-installer/workspace"
+  },
+  "outputs": {},
+  "status": "completed",
+  "timestamp": "2025-10-14_18-47-50"
+}

@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/judebantony/e2e-k8s-installer/pkg/config"
+	"github.com/judebantony/e2e-k8s-installer/pkg/infrastructure"
 	"github.com/judebantony/e2e-k8s-installer/pkg/logger"
 	"github.com/judebantony/e2e-k8s-installer/pkg/progress"
-	"github.com/judebantony/e2e-k8s-installer/pkg/terraform"
 )
 
 // provisionInfraCmd represents the provision-infra command
@@ -100,13 +100,18 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 	pm.StartSpinner("config", "Loading configuration...")
 	logger.StepStart("load-config")
 	
-	cfg := config.GenerateDefaultConfig()
-	// TODO: Implement actual file loading
-	// cfg, err := loadConfigFromFile(provisionConfigFile)
+	var cfg *config.InstallerConfig
 	var err error
+	
 	if provisionConfigFile != "" {
-		// For now, use default config even if file is specified
-		// TODO: Implement file parsing
+		cfg, err = config.LoadConfig(provisionConfigFile)
+		if err != nil {
+			pm.FailSpinner("config", "Failed to load configuration file")
+			logger.StepFailed("load-config", err)
+			return fmt.Errorf("failed to load configuration file: %w", err)
+		}
+	} else {
+		cfg = config.GenerateDefaultConfig()
 	}
 	
 	if err := cfg.ValidateConfig(); err != nil {
@@ -120,47 +125,50 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 	currentStep++
 	progress.ShowStepProgress(steps, currentStep)
 	
-	// Step 2: Initialize Terraform
-	pm.StartSpinner("init", "Initializing Terraform...")
-	logger.StepStart("terraform-init")
+	// Step 2: Initialize Infrastructure Manager
+	pm.StartSpinner("init", "Initializing infrastructure provisioning...")
+	logger.StepStart("infra-init")
 	
-	tfManager, err := terraform.NewManager(&cfg.Infrastructure)
+	infraManager, err := infrastructure.NewManager(&cfg.Infrastructure)
 	if err != nil {
-		pm.FailSpinner("init", "Terraform initialization failed")
-		logger.StepFailed("terraform-init", err)
-		return fmt.Errorf("failed to create Terraform manager: %w", err)
+		pm.FailSpinner("init", "Infrastructure manager initialization failed")
+		logger.StepFailed("infra-init", err)
+		return fmt.Errorf("failed to create infrastructure manager: %w", err)
 	}
 	
-	if err := tfManager.Init(); err != nil {
-		pm.FailSpinner("init", "Terraform init failed")
-		logger.StepFailed("terraform-init", err)
-		return fmt.Errorf("terraform init failed: %w", err)
+	logger.Info("Infrastructure manager initialized").
+		Str("mode", infraManager.GetProvisionMode()).
+		Send()
+	
+	if err := infraManager.Init(viper.GetBool("dry-run")); err != nil {
+		pm.FailSpinner("init", "Infrastructure initialization failed")
+		logger.StepFailed("infra-init", err)
+		return fmt.Errorf("infrastructure initialization failed: %w", err)
 	}
 	
-	pm.SuccessSpinner("init", "Terraform initialized successfully")
-	logger.StepComplete("terraform-init", 0)
+	pm.SuccessSpinner("init", "Infrastructure initialized successfully")
+	logger.StepComplete("infra-init", 0)
 	currentStep++
 	progress.ShowStepProgress(steps, currentStep)
 	
 	// Step 3: Plan infrastructure
 	pm.StartSpinner("plan", "Planning infrastructure changes...")
-	logger.StepStart("terraform-plan")
+	logger.StepStart("infra-plan")
 	
-	planOutput, err := tfManager.Plan(provisionDestroy)
-	if err != nil {
-		pm.FailSpinner("plan", "Terraform planning failed")
-		logger.StepFailed("terraform-plan", err)
-		return fmt.Errorf("terraform plan failed: %w", err)
+	if err := infraManager.Plan(viper.GetBool("dry-run")); err != nil {
+		pm.FailSpinner("plan", "Infrastructure planning failed")
+		logger.StepFailed("infra-plan", err)
+		return fmt.Errorf("infrastructure planning failed: %w", err)
 	}
 	
 	pm.SuccessSpinner("plan", "Infrastructure plan completed")
-	logger.StepComplete("terraform-plan", 0)
+	logger.StepComplete("infra-plan", 0)
 	currentStep++
 	progress.ShowStepProgress(steps, currentStep)
 	
-	// Show plan output
-	fmt.Println("\n📋 Terraform Plan:")
-	fmt.Println(planOutput)
+	// Show plan information
+	fmt.Printf("\n📋 Infrastructure Plan (%s mode):\n", infraManager.GetProvisionMode())
+	fmt.Println("Plan completed successfully - review the output above for details")
 	
 	// If plan-only, stop here
 	if provisionPlanOnly {
@@ -188,20 +196,28 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 	}
 	
 	pm.StartSpinner("apply", action)
-	logger.StepStart("terraform-apply")
+	logger.StepStart("infra-apply")
 	
 	if viper.GetBool("dry-run") {
 		pm.SuccessSpinner("apply", "Dry run: Infrastructure changes would be applied")
-		logger.StepComplete("terraform-apply", 0)
+		logger.StepComplete("infra-apply", 0)
 	} else {
-		if err := tfManager.Apply(provisionDestroy); err != nil {
-			pm.FailSpinner("apply", "Infrastructure operation failed")
-			logger.StepFailed("terraform-apply", err)
-			return fmt.Errorf("terraform apply failed: %w", err)
+		if provisionDestroy {
+			if err := infraManager.Destroy(false); err != nil {
+				pm.FailSpinner("apply", "Infrastructure destruction failed")
+				logger.StepFailed("infra-apply", err)
+				return fmt.Errorf("infrastructure destruction failed: %w", err)
+			}
+		} else {
+			if err := infraManager.Apply(false); err != nil {
+				pm.FailSpinner("apply", "Infrastructure application failed")
+				logger.StepFailed("infra-apply", err)
+				return fmt.Errorf("infrastructure application failed: %w", err)
+			}
 		}
 		
 		pm.SuccessSpinner("apply", "Infrastructure operation completed")
-		logger.StepComplete("terraform-apply", 0)
+		logger.StepComplete("infra-apply", 0)
 	}
 	
 	currentStep++
@@ -213,7 +229,7 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 		pm.StartSpinner("report", "Generating destruction report...")
 		logger.StepStart("generate-report")
 		
-		reportPath, err := generateInfraReport(cfg, tfManager, true)
+		reportPath, err := generateInfraReport(cfg, infraManager, true)
 		if err != nil {
 			pm.FailSpinner("report", "Report generation failed")
 			logger.StepFailed("generate-report", err)
@@ -243,7 +259,7 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 		pm.SuccessSpinner("health", "Dry run: Health checks would be performed")
 		logger.StepComplete("health-checks", 0)
 	} else {
-		if err := tfManager.RunHealthChecks(); err != nil {
+		if err := infraManager.RunHealthChecks(); err != nil {
 			pm.FailSpinner("health", "Health checks failed")
 			logger.StepFailed("health-checks", err)
 			logger.Warn("Infrastructure health checks failed, but infrastructure was created").Err(err).Send()
@@ -261,7 +277,7 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 	pm.StartSpinner("report", "Generating infrastructure report...")
 	logger.StepStart("generate-report")
 	
-	reportPath, err := generateInfraReport(cfg, tfManager, false)
+	reportPath, err := generateInfraReport(cfg, infraManager, false)
 	if err != nil {
 		pm.FailSpinner("report", "Report generation failed")
 		logger.StepFailed("generate-report", err)
@@ -290,7 +306,7 @@ func runProvisionInfra(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func generateInfraReport(cfg *config.Config, tfManager *terraform.Manager, isDestroy bool) (string, error) {
+func generateInfraReport(cfg *config.Config, infraManager *infrastructure.Manager, isDestroy bool) (string, error) {
 	timestamp := time.Now().Format("2006-01-02_15-04-05")
 	reportDir := filepath.Join(cfg.Installer.Workspace, "reports")
 	
@@ -307,10 +323,26 @@ func generateInfraReport(cfg *config.Config, tfManager *terraform.Manager, isDes
 	
 	reportPath := filepath.Join(reportDir, reportName)
 	
-	// Get Terraform outputs
-	outputs, err := tfManager.GetOutputs()
-	if err != nil {
-		logger.Warn("Failed to get Terraform outputs").Err(err).Send()
+	// Get infrastructure manager information
+	infraInfo := infraManager.GetInfo()
+	
+	// Get outputs based on provision mode
+	var outputs map[string]interface{}
+	var err error
+	
+	if infraManager.GetProvisionMode() == "terraform" || infraManager.GetProvisionMode() == "hybrid" {
+		tfMgr := infraManager.GetTerraformManager()
+		if tfMgr != nil {
+			outputs, err = tfMgr.GetOutputs()
+			if err != nil {
+				logger.Warn("Failed to get Terraform outputs").Err(err).Send()
+				outputs = make(map[string]interface{})
+			}
+		} else {
+			outputs = make(map[string]interface{})
+		}
+	} else {
+		// For makefile mode, we don't have structured outputs
 		outputs = make(map[string]interface{})
 	}
 	
@@ -318,16 +350,21 @@ func generateInfraReport(cfg *config.Config, tfManager *terraform.Manager, isDes
 	report := map[string]interface{}{
 		"timestamp": timestamp,
 		"operation": map[string]interface{}{
-			"type":      "provision-infra",
-			"destroy":   isDestroy,
-			"workspace": cfg.Installer.Workspace,
-			"provider":  cfg.Cloud.Provider,
-			"region":    cfg.Cloud.Region,
+			"type":           "provision-infra",
+			"destroy":        isDestroy,
+			"workspace":      cfg.Installer.Workspace,
+			"provider":       cfg.Cloud.Provider,
+			"region":         cfg.Cloud.Region,
+			"provisionMode":  infraManager.GetProvisionMode(),
 		},
-		"terraform": map[string]interface{}{
-			"outputs": outputs,
+		"infrastructure": map[string]interface{}{
+			"mode":             infraManager.GetProvisionMode(),
+			"terraformEnabled": infraInfo.TerraformEnabled,
+			"makefileEnabled":  infraInfo.MakefileEnabled,
+			"healthCheck":      infraInfo.HealthCheckConfig,
 		},
-		"status": "completed",
+		"outputs": outputs,
+		"status":  "completed",
 	}
 	
 	// Convert to JSON

@@ -1,0 +1,202 @@
+{
+  "installer": {
+    "version": "1.0.0",
+    "workspace": "./workspace",
+    "verbose": false,
+    "dryRun": false,
+    "logLevel": "info",
+    "logFormat": "text"
+  },
+  "infrastructure": {
+    "provisionMode": "makefile",
+    "terraform": {
+      "enabled": false,
+      "modules": ["placeholder"],
+      "workspace": "",
+      "validateHealth": false,
+      "autoApprove": false,
+      "parallelism": 1,
+      "timeout": "30m"
+    },
+    "makefile": {
+      "enabled": true,
+      "makefilePath": "./Makefile",
+      "workingDirectory": "./",
+      "environment": {
+        "TF_VAR_region": "us-west-2",
+        "TF_VAR_environment": "dev"
+      },
+      "timeout": "30m",
+      "targets": {
+        "init": "init",
+        "plan": "plan", 
+        "apply": "apply",
+        "destroy": "destroy",
+        "validate": "validate",
+        "clean": "clean",
+        "format": "format",
+        "healthCheck": "health-check"
+      }
+    },
+    "healthCheck": {
+      "url": "http://localhost:8080/health",
+      "method": "GET",
+      "timeout": "30s",
+      "retries": 3,
+      "interval": "10s",
+      "expectedStatus": 200
+    }
+  },
+  "artifacts": {
+    "images": {
+      "skipPull": false,
+      "vendor": {
+        "registry": "https://ghcr.io",
+        "auth": {"token": "vendor_token_here"},
+        "timeout": "30s"
+      },
+      "client": {
+        "registry": "https://myregistry.azurecr.io",
+        "auth": {"username": "client_user", "password": "client_pass"},
+        "enablePipeline": true,
+        "timeout": "60s"
+      },
+      "images": [
+        {
+          "name": "app-backend",
+          "version": "v1.2.3",
+          "required": true,
+          "pullPolicy": "IfNotPresent"
+        }
+      ]
+    },
+    "helm": {
+      "vendor": {
+        "repo": "https://github.com/vendor/helm-charts",
+        "branch": "main",
+        "auth": {"token": "vendor_github_token"}
+      },
+      "client": {
+        "repo": "https://github.com/client/helm-charts",
+        "pushToRepo": true
+      }
+    },
+    "terraform": {
+      "vendor": {
+        "repo": "https://github.com/vendor/terraform-modules",
+        "tag": "v1.0.0",
+        "auth": {"token": "vendor_github_token"}
+      },
+      "client": {
+        "repo": "https://github.com/client/terraform-modules",
+        "pushToRepo": false
+      }
+    }
+  },
+  "database": {
+    "enabled": true,
+    "runAsInitContainer": true,
+    "scripts": {
+      "repo": "https://github.com/vendor/db-scripts",
+      "tag": "v1.0.0",
+      "auth": {"token": "vendor_github_token"}
+    },
+    "connection": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "app_db",
+      "username": "db_user",
+      "password": "db_pass",
+      "sslMode": "disable"
+    },
+    "migration": {
+      "tool": "flyway",
+      "path": "./migrations",
+      "timeout": "10m"
+    },
+    "validation": {
+      "enabled": true,
+      "healthCheck": "SELECT 1",
+      "timeout": "30s",
+      "retries": 3
+    }
+  },
+  "deployment": {
+    "helm": {
+      "charts": [
+        {
+          "name": "backend",
+          "path": "./charts/backend",
+          "namespace": "app",
+          "order": 1,
+          "healthCheck": {
+            "url": "http://backend:8080/health",
+            "method": "GET",
+            "expectedStatus": 200,
+            "timeout": "30s",
+            "retries": 5,
+            "interval": "10s"
+          }
+        }
+      ],
+      "createNamespace": true,
+      "wait": true,
+      "timeout": "15m"
+    },
+    "validation": {
+      "healthChecks": [
+        {
+          "url": "http://app.example.com/health",
+          "method": "GET",
+          "expectedStatus": 200,
+          "timeout": "30s",
+          "retries": 3,
+          "interval": "10s"
+        }
+      ],
+      "timeout": "15m"
+    },
+    "e2e": {
+      "enabled": true,
+      "testSuite": "./tests/e2e",
+      "framework": "go-test",
+      "config": {
+        "parallel": false,
+        "workers": 1,
+        "retries": 1
+      },
+      "reporting": {
+        "format": "junit",
+        "output": "./reports/e2e-results.xml",
+        "archive": true
+      },
+      "timeout": "30m"
+    }
+  },
+  "validation": {
+    "post": {
+      "parallel": false,
+      "timeout": "15m"
+    },
+    "e2e": {
+      "enabled": true,
+      "testSuite": "./tests/e2e",
+      "framework": "go-test",
+      "config": {
+        "parallel": false,
+        "workers": 1,
+        "retries": 1
+      },
+      "reporting": {
+        "format": "junit",
+        "output": "./reports/e2e-results.xml",
+        "archive": true
+      },
+      "timeout": "30m"
+    }
+  },
+  "cloud": {
+    "provider": "aws",
+    "region": "us-west-2"
+  }
+}

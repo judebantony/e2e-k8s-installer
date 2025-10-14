@@ -113,9 +113,12 @@ type TerraformModule struct {
 }
 
 // InfrastructureConfig manages infrastructure provisioning
+// InfrastructureConfig manages infrastructure provisioning
 type InfrastructureConfig struct {
-	Terraform   TerraformExecution `json:"terraform"`
-	HealthCheck HealthCheckConfig  `json:"healthCheck"`
+	ProvisionMode string             `json:"provisionMode" validate:"oneof=terraform makefile hybrid"`
+	Terraform     TerraformExecution `json:"terraform"`
+	Makefile      MakefileExecution  `json:"makefile"`
+	HealthCheck   HealthCheckConfig  `json:"healthCheck"`
 }
 
 // TerraformExecution contains Terraform execution settings
@@ -129,6 +132,33 @@ type TerraformExecution struct {
 	AutoApprove    bool              `json:"autoApprove"`
 	Parallelism    int               `json:"parallelism" validate:"min=1,max=100"`
 	Timeout        string            `json:"timeout" validate:"duration"`
+}
+
+// MakefileExecution contains Makefile-based provisioning settings
+type MakefileExecution struct {
+	Enabled          bool              `json:"enabled"`
+	MakefilePath     string            `json:"makefilePath" validate:"required_if=Enabled true,file"`
+	Targets          MakefileTargets   `json:"targets"`
+	Environment      map[string]string `json:"environment,omitempty"`
+	Variables        map[string]string `json:"variables,omitempty"`
+	WorkingDirectory string            `json:"workingDirectory"`
+	Timeout          string            `json:"timeout" validate:"duration"`
+	Parallel         bool              `json:"parallel"`
+	KeepGoing        bool              `json:"keepGoing"`
+	DryRun           bool              `json:"dryRun"`
+}
+
+// MakefileTargets defines the targets for different operations
+type MakefileTargets struct {
+	Init        string `json:"init"`
+	Plan        string `json:"plan"`
+	Apply       string `json:"apply"`
+	Destroy     string `json:"destroy"`
+	Validate    string `json:"validate"`
+	Clean       string `json:"clean"`
+	Format      string `json:"format"`
+	HealthCheck string `json:"healthCheck"`
+	Custom      map[string]string `json:"custom,omitempty"`
 }
 
 // DatabaseConfig manages database initialization and migration
@@ -474,12 +504,12 @@ func GenerateDefaultConfig() *InstallerConfig {
 			Images: ImageConfig{
 				SkipPull: false,
 				Vendor: RegistryConfig{
-					Registry: "ghcr.io/vendor",
+					Registry: "https://ghcr.io",
 					Auth:     AuthConfig{Token: "vendor_token_here"},
 					Timeout:  "30s",
 				},
 				Client: RegistryConfig{
-					Registry:       "acr.client.com",
+					Registry:       "https://myregistry.azurecr.io",
 					Auth:           AuthConfig{Username: "client_user", Password: "client_pass"},
 					EnablePipeline: true,
 					Timeout:        "60s",
@@ -524,6 +554,7 @@ func GenerateDefaultConfig() *InstallerConfig {
 			},
 		},
 		Infrastructure: InfrastructureConfig{
+			ProvisionMode: "terraform",
 			Terraform: TerraformExecution{
 				Enabled:        true,
 				Modules:        []string{"cluster", "database", "networking"},
@@ -533,6 +564,32 @@ func GenerateDefaultConfig() *InstallerConfig {
 				Parallelism:    10,
 				Timeout:        "30m",
 			},
+			Makefile: MakefileExecution{
+				Enabled:          false,
+				MakefilePath:     "./Makefile",
+				WorkingDirectory: "./infrastructure",
+				Environment:      map[string]string{},
+				Timeout:          "30m",
+				Targets: MakefileTargets{
+					Init:        "init",
+					Plan:        "plan",
+					Apply:       "apply",
+					Destroy:     "destroy",
+					Validate:    "validate",
+					Clean:       "clean",
+					Format:      "format",
+					HealthCheck: "health-check",
+					Custom:      map[string]string{},
+				},
+			},
+			HealthCheck: HealthCheckConfig{
+				URL:            "http://localhost:8080/health",
+				Method:         "GET",
+				Timeout:        "30s",
+				Retries:        3,
+				Interval:       "10s",
+				ExpectedStatus: 200,
+			},
 		},
 		Database: DatabaseConfig{
 			Enabled:            true,
@@ -541,6 +598,19 @@ func GenerateDefaultConfig() *InstallerConfig {
 				Repo: "https://github.com/vendor/db-scripts",
 				Tag:  "v1.0.0",
 				Auth: AuthConfig{Token: "vendor_github_token"},
+			},
+			Connection: DatabaseConnection{
+				Host:     "localhost",
+				Port:     5432,
+				Database: "app_db",
+				Username: "db_user",
+				Password: "db_pass",
+				SSLMode:  "disable",
+			},
+			Migration: MigrationConfig{
+				Tool:    "flyway",
+				Path:    "./migrations",
+				Timeout: "10m",
 			},
 			Validation: DatabaseValidation{
 				Enabled:     true,
@@ -617,6 +687,10 @@ func GenerateDefaultConfig() *InstallerConfig {
 				},
 				Timeout: "30m",
 			},
+		},
+		Cloud: CloudConfig{
+			Provider: "aws",
+			Region:   "us-west-2",
 		},
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -13,6 +14,19 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
+	
+	// Register custom duration validator
+	validate.RegisterValidation("duration", validateDuration)
+}
+
+// validateDuration validates that a string represents a valid duration
+func validateDuration(fl validator.FieldLevel) bool {
+	duration := fl.Field().String()
+	if duration == "" {
+		return true // Allow empty values, let required handle non-empty validation
+	}
+	_, err := time.ParseDuration(duration)
+	return err == nil
 }
 
 // LoadConfig loads and validates configuration from a JSON file
