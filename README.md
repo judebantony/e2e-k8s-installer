@@ -2,7 +2,13 @@
 
 A comprehensive, production-ready Go-based CLI tool for deploying and managing Kubernetes clusters across multiple cloud environments with enterprise-grade security, monitoring, and validation capabilities.
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/judebantony/e2e-k8s-installer)](https://goreportcard.com/report/github.com/judebantony/e2e-k8s-installer)
+[![GitHub Release](https://img.shields.io/github/release/judebantony/e2e-k8s-installer.svg)](https://github.com/judebantony/e2e-k8s-installer/releases/latest)
+
 ## 🎯 Project Overview
+
+Design and develop a unified, cross-platform, end-to-end (E2E) installer for deploying and managing a Kubernetes-based application across startup, mid-size, enterprise, and air-gapped environments.
+The installer will automate provisioning, configuration, deployment, validation, and lifecycle management across Azure, AWS, GCP, and on-prem (OpenShift, Rancher, etc.) infrastructures while ensuring compliance, security, and resilience.
 
 This installer provides a unified approach to Kubernetes cluster deployment with:
 
@@ -11,6 +17,105 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - **Security-First**: Integrated security scanning, RBAC, and policy enforcement
 - **Enterprise Ready**: Production-grade monitoring, logging, and operational tools
 - **Validation-Driven**: Comprehensive pre-flight and post-deployment validation
+
+## 🎯 Core Objectives
+
+- **Simplify Deployment**: Streamline application deployment and lifecycle management in Kubernetes clusters
+- **Air-gapped Support**: Provide offline installation and upgrade capabilities for secure environments
+- **Compliance & Auditability**: Ensure compliance, auditability, idempotency, and cross-cloud portability
+- **Flexible Installation**: Offer both interactive and non-interactive (config-driven) installation modes
+- **Self-contained Delivery**: Enable complete deployment without direct vendor package access
+
+## 📋 Scope and Functional Requirements
+
+### 🏗️ Infrastructure Provisioning
+
+- **Terraform Integration**: Use Terraform for cloud and cluster provisioning
+- **Multi-Cloud Support**: Support Azure, AWS, GCP, and on-prem (OpenShift, Rancher) Kubernetes setups
+- **Parameter Collection**: Collect customer parameters (credentials, regions, network settings, managed services options) interactively or via config files
+- **Managed Services**: Provision cloud-managed services (databases, storage, queues) per provider specifications
+
+### 🚀 Application Deployment
+
+- **Helm Integration**: Use Helm for application component deployment
+- **Repository Management**: Store Helm charts and Terraform modules in GitHub repository (private or public)
+- **Container Registry Support**:
+  - **Source Registries**: DockerHub, GitHub Packages, Azure ACR, AWS ECR, GCP Artifact Registry
+  - **Destination Registries**: Customer's private registry (Harbor, Nexus, JFrog Artifactory)
+- **Security Scanning**: Perform image scanning and vulnerability assessments prior to deployment
+- **Configuration Management**: Support environment variables, secrets, and config map management
+- **Deployment Modes**: Support dry-run, actual install, and post-install validation
+
+### 🛡️ Security and Authentication
+
+- **Modern Authentication**: Integrate OIDC 2.0 and OAuth 2.0 using Auth0 for secure access
+- **Enterprise Integration**: Support enterprise authentication (LDAP, Active Directory)
+- **Secret Management**: Integrate with HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, or GCP Secret Manager
+- **Compliance**: Ensure all operations are auditable and compliant with enterprise standards
+
+### 🌐 Service and Network Components
+
+- **Service Mesh**: Integrate Service Mesh (Istio) for traffic management and observability
+- **API Gateway**: Include API Gateway for microservices routing and security
+- **Network Plugins**: Support multiple CNI plugins - Istio, Calico, Flannel, Weave
+- **Storage Solutions**: Support various storage options - NFS, GlusterFS, Ceph
+
+### 📊 Observability and Reliability
+
+- **Monitoring Stack**: Integrate ELK Stack, Prometheus, and Grafana for comprehensive monitoring and logging
+- **Resilience Patterns**: Implement circuit breaker patterns for service resilience
+- **Health Management**: Enable alerting, health checks, and post-deployment testing
+- **Recovery Capabilities**: Provide rollback and recovery capabilities in case of deployment failures
+
+### 💾 Data & Messaging Integration
+
+- **Caching**: Support Redis for high-performance caching
+- **Database Support**: Support MongoDB and PostgreSQL as primary databases
+- **Streaming Platforms**: Implement data streaming capabilities via Apache Kafka, RabbitMQ, and Apache Flink
+- **Database Migrations**: Provide database migration automation using Flyway or Liquibase (as init container or Kubernetes job)
+- **Migration Safety**: Ensure migrations are idempotent and error-tolerant
+
+### 🔄 CI/CD Integration
+
+- **Pipeline Integration**: Integrate GitHub Actions for CI pipelines and ArgoCD for CD.
+- **Source Code Validation**: Enable validation of source code from client's private Git repositories
+- **Post-Deployment Housekeeping**: Support post-deployment housekeeping: log rotation, DB backup/restore, post-deploy scripts
+- **Application Upgrades**: Support application upgrades in an idempotent and rollback-safe manner
+
+## 🛠️ Installer Features
+
+### 🎮 Modes of Operation
+
+- **Interactive Mode**: Guided, step-by-step installation with intelligent prompts and validation
+- **Non-Interactive Mode**: Fully automated installation driven by configuration files
+- **CLI-based Utility**: Cross-platform package management support (yum, brew, apt-get installation)
+
+### 🖥️ Platform Compatibility
+
+- **Operating Systems**: 
+  - **Windows**: Full Windows 10/11 and Windows Server support
+  - **Linux**: Ubuntu, RHEL, CentOS, SUSE, Amazon Linux distributions
+  - **macOS**: Intel and Apple Silicon (M1/M2) compatibility
+- **Kubernetes Versions**: Compatible with multiple K8s versions (1.25+) and major distributions
+  - **Managed Services**: EKS, AKS, GKE integration
+  - **Enterprise Distributions**: OpenShift, Rancher, VMware Tanzu support
+  - **Vanilla Kubernetes**: Kubeadm-based installations
+
+### 📊 Logging & Transparency
+
+- **Detailed Logging**: Comprehensive logs of all actions for troubleshooting and compliance
+- **Real-time Tracking**: Live progress tracking with detailed status updates and error feedback
+- **Idempotent Operations**: All actions are idempotent and resume-capable after failure
+- **Audit Trail**: Complete audit logging for enterprise compliance requirements
+- **Debug Mode**: Verbose logging and diagnostic information for troubleshooting
+
+### 📋 Reporting & Documentation
+
+- **Installation Reports**: Generate comprehensive installation summary reports post-deployment
+- **Error Documentation**: Include detailed error descriptions, rollback actions, and corrective guidance
+- **Post-Install Guides**: Provide complete post-install documentation, access instructions, and maintenance guides
+- **Compliance Reports**: Generate compliance and security assessment reports
+- **Performance Metrics**: Installation time, resource utilization, and optimization recommendations
 
 ## 🚀 Features & Core Capabilities
 
