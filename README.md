@@ -35,8 +35,8 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - **Container Images (OCI)**: Transfer from vendor registries → client's private registry (or verify presence if client already mirrors). GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry supported as source registries and Harbor, Nexus, JFrog Artifactory as destination registries
 - **Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). The charts are versioned and tagged in the vendor GitHub repo
 - **Terraform Modules**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
-- **Database Migration Scripts**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
-- **Helthy Checks & Validation**: Ensure all artifacts are verified, scanned, and ready for deployment with detailed reporting
+- **Database Migration & Repair Scripts**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
+- **Health Checks & Validation**: Ensure all artifacts are verified, scanned, and ready for deployment with detailed reporting
 
 ### Full E2E installation once artifacts are in client environment
 
@@ -152,27 +152,12 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - **Secret Management**: Integrate with HashiCorp Vault, Azure Key Vault, AWS Secrets Manager, or GCP Secret Manager
 - **Compliance**: Ensure all operations are auditable and compliant with enterprise standards
 
-### 🌐 Service and Network Components
-
-- **Service Mesh**: Integrate Service Mesh (Istio) for traffic management and observability
-- **API Gateway**: Include API Gateway for microservices routing and security
-- **Network Plugins**: Support multiple CNI plugins - Istio, Calico, Flannel, Weave
-- **Storage Solutions**: Support various storage options - NFS, GlusterFS, Ceph
-
 ### 📊 Observability and Reliability
 
 - **Monitoring Stack**: Integrate ELK Stack, Prometheus, and Grafana for comprehensive monitoring and logging
 - **Resilience Patterns**: Implement circuit breaker patterns for service resilience
 - **Health Management**: Enable alerting, health checks, and post-deployment testing
 - **Recovery Capabilities**: Provide rollback and recovery capabilities in case of deployment failures
-
-### 💾 Data & Messaging Integration
-
-- **Caching**: Support Redis for high-performance caching
-- **Database Support**: Support MongoDB and PostgreSQL as primary databases
-- **Streaming Platforms**: Implement data streaming capabilities via Apache Kafka, RabbitMQ, and Apache Flink
-- **Database Migrations**: Provide database migration automation using Flyway or Liquibase (as init container or Kubernetes job)
-- **Migration Safety**: Ensure migrations are idempotent and error-tolerant
 
 ### 🔄 CI/CD Integration
 
@@ -320,9 +305,11 @@ sequenceDiagram
 | **🏗️ Core Architecture** | ✅ Complete | Go 1.21+ with enhanced enterprise libraries |
 | **⚙️ Configuration System** | ✅ Complete | JSON-based configuration with comprehensive validation |
 | **📊 Logging & Progress** | ✅ Complete | Structured logging (zerolog) + beautiful progress indicators (pterm) |
-| **🔧 set-up Command** | ✅ Complete | Workspace initialization and prerequisite validation |
+| **🔧 setup Command** | ✅ Complete | Workspace initialization and prerequisite validation |
 | **📦 package-pull Command** | ✅ Complete | OCI image sync, Helm chart management, Git repository handling |
+| **☁️ provision-infra Command** | ✅ Complete | Multi-mode infrastructure provisioning (terraform/makefile/hybrid) |
 | **🎨 CLI Experience** | ✅ Complete | Professional banner, color-coded output, comprehensive help |
+| **🔗 Multi-Mode Infrastructure** | ✅ Complete | Unified terraform/makefile/hybrid provisioning system |
 
 ### 🚧 **In Development**
 
@@ -337,10 +324,10 @@ sequenceDiagram
 
 #### 🎯 Development Roadmap
 
-- **Phase 1 (v1.1.0)**: Infrastructure provisioning with Terraform automation
-- **Phase 2 (v1.2.0)**: Database migrations and application deployment capabilities  
-- **Phase 3 (v1.3.0)**: Comprehensive validation and testing framework
-- **Phase 4 (v1.4.0)**: Complete workflow orchestration and production readiness
+- **Phase 1 (v1.1.0)**: ✅ **COMPLETED** - Multi-mode infrastructure provisioning with enhanced Makefile support
+- **Phase 2 (v1.2.0)**: 🚧 **IN PROGRESS** - Database migrations and application deployment capabilities  
+- **Phase 3 (v1.3.0)**: 🔄 **PLANNED** - Comprehensive validation and testing framework
+- **Phase 4 (v1.4.0)**: 🔄 **PLANNED** - Complete workflow orchestration and production readiness
 
 ## 🛠️ Installer Features
 
@@ -429,15 +416,6 @@ sequenceDiagram
 | **Scaling Operations** | Auto & manual scaling | Load adaptation, cost optimization |
 | **Certificate Management** | Automated TLS provisioning | Security compliance, cert rotation |
 
-### 🌐 **Networking & Service Mesh**
-
-| Technology | Integration | Benefits |
-|------------|-------------|----------|
-| **CNI Plugins** | Calico, Flannel, Cilium | Network isolation, policy enforcement |
-| **Ingress Controllers** | NGINX, Traefik, Istio Gateway | Traffic routing, SSL termination |
-| **Service Mesh** | Istio, Linkerd | Traffic management, security, observability |
-| **Load Balancing** | Cloud-native LB integration | High availability, traffic distribution |
-
 ### 🔄 **CI/CD Integration**
 
 | Platform | Support | Features |
@@ -488,28 +466,109 @@ sequenceDiagram
 
 ## 🏗️ Architecture
 
-### Current Implementation Architecture
+### Multi-Mode Infrastructure Provisioning Architecture
+
+The installer implements a sophisticated **multi-mode infrastructure provisioning system** that supports Terraform, Makefile-based workflows, and hybrid approaches for maximum flexibility.
+
+#### **High-Level Architecture Overview**
 
 ```plaintext
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   CLI Layer     │    │  Configuration   │    │  Command        │
-│   (Cobra)       │───▶│  Management      │───▶│  Execution      │
-│   Beautiful UI  │    │  (JSON + Valid.) │    │  Engine         │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Logging &      │    │   Workspace      │    │   Artifact      │
-│  Progress UI    │    │  Management      │    │ Synchronization │
-│  (zerolog+pterm)│    │  (set-up cmd)    │    │ (package-pull)  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Prerequisites │    │  OCI Registry    │    │  Git Repository │
-│   Validation    │    │   Operations     │    │   Management    │
-│ (kubectl/helm)  │    │(go-containerreg)│    │   (go-git)      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                           CLI Application Entry Point               │
+│                        main.go → cmd.Execute()                      │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Command Layer (cmd/)                        │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │
+│  │   setup.go  │ │package_pull │ │provision_   │ │   deploy    │    │
+│  │             │ │    .go      │ │  infra.go   │ │    .go      │    │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘    │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐    │
+│  │ db_migrate  │ │post_validate│ │ e2e_test.go │ │ install.go  │    │
+│  │   .go       │ │   .go       │ │             │ │             │    │
+│  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Business Logic Layer (pkg/)                    │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
+│  │   config/       │ │   infrastructure│ │   artifacts/    │         │
+│  │   types.go      │ │   manager.go    │ │   manager.go    │         │
+│  │   validation    │ │   Multi-Mode    │ │   OCI/Helm/Git  │         │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
+│  │   makefile/     │ │   terraform/    │ │   logger/       │         │
+│  │   manager.go    │ │   manager.go    │ │   progress/     │         │
+│  │   Execution     │ │   Operations    │ │   UI Components │         │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
+└─────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    External Integration Layer                       │
+│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐         │
+│  │  OCI Registries │ │  Git Repositories│ │  Cloud Providers │       │
+│  │  Harbor/DockerHub│ │  GitHub/GitLab  │ │  AWS/Azure/GCP  │         │
+│  └─────────────────┘ └─────────────────┘ └─────────────────┘         │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Multi-Mode Infrastructure Provisioning System
+
+The **Infrastructure Manager** (`pkg/infrastructure/manager.go`) provides a unified interface supporting three distinct provisioning modes:
+
+#### **1. Terraform Mode** 🏗️
+
+- **Purpose**: Pure Terraform-based infrastructure provisioning
+- **Use Case**: Cloud-native deployments with Terraform state management
+- **Components**:
+  - `pkg/terraform/manager.go`: Terraform operations (init, plan, apply)
+  - Multi-cloud support (AWS EKS, Azure AKS, GCP GKE)
+  - Automated health checks and validation
+
+#### **2. Makefile Mode** ⚙️
+
+- **Purpose**: Makefile-based infrastructure workflows
+- **Use Case**: Custom provisioning scripts, legacy systems, hybrid environments
+- **Components**:
+  - `pkg/makefile/manager.go`: Makefile execution with enterprise features
+  - Target execution with timeout and environment management
+  - Integration with existing DevOps workflows
+
+#### **3. Hybrid Mode** 🔄
+
+- **Purpose**: Combined Terraform + Makefile workflows
+- **Use Case**: Complex environments requiring both approaches
+- **Workflow**: Makefile orchestration calling Terraform modules internally
+
+```go
+// Infrastructure Manager modes
+const (
+    ProvisionModeTerraform = "terraform"  // Pure Terraform
+    ProvisionModeMakefile  = "makefile"   // Pure Makefile  
+    ProvisionModeHybrid    = "hybrid"     // Combined approach
+)
+```
+
+### Unified Infrastructure Interface
+
+```go
+type Manager struct {
+    config          *config.InfrastructureConfig
+    terraformMgr    *terraform.Manager      // Terraform operations
+    makefileMgr     *makefile.Manager       // Makefile execution
+    provisionMode   string                  // Mode selector
+}
+
+// Unified operations across all modes
+func (m *Manager) Init(dryRun bool) error
+func (m *Manager) Plan(dryRun bool) error  
+func (m *Manager) Apply(dryRun bool) error
+func (m *Manager) Destroy(dryRun bool) error
+func (m *Manager) Validate(dryRun bool) error
 ```
 
 ### Implementation Status & Features
@@ -518,68 +577,121 @@ sequenceDiagram
 |-------|-----------|--------|-------------|
 | **CLI** | Cobra Framework | ✅ Complete | Professional CLI with auto-completion |
 | **CLI** | Beautiful UI | ✅ Complete | pterm-based progress bars and colors |
-| **Config** | JSON Processing | ✅ Complete | go-playground/validator integration |
-| **Config** | Environment Variables | ✅ Complete | Support for ENV var overrides |
-| **Commands** | set-up Command | ✅ Complete | Workspace initialization & validation |
+| **Config** | JSON Processing | ✅ Complete | go-playground/validator with comprehensive validation |
+| **Config** | Multi-Mode Support | ✅ Complete | terraform/makefile/hybrid configuration |
+| **Commands** | setup Command | ✅ Complete | Workspace initialization & validation |
 | **Commands** | package-pull Command | ✅ Complete | OCI/Helm/Terraform synchronization |
+| **Commands** | provision-infra Command | ✅ Complete | Multi-mode infrastructure provisioning |
+| **Infrastructure** | Terraform Manager | ✅ Complete | Multi-cloud Terraform operations |
+| **Infrastructure** | Makefile Manager | ✅ Complete | Enterprise Makefile execution |
+| **Infrastructure** | Hybrid Mode | ✅ Complete | Combined terraform+makefile workflows |
 | **Artifacts** | OCI Image Management | ✅ Complete | Cross-registry synchronization |
 | **Artifacts** | Helm Chart Management | ✅ Complete | Repository cloning and mirroring |
 | **Artifacts** | Terraform Modules | ✅ Complete | Git-based module management |
-| **Infrastructure** | Terraform Deployment | 🔄 Planned | Infrastructure provisioning |
-| **Applications** | Helm Deployment | 🔄 Planned | Application deployment |
-| **Validation** | Post-Deploy Testing | 🔄 Planned | End-to-end validation |
+| **Database** | Migration System | � In Progress | Flyway/Liquibase integration |
+| **Applications** | Helm Deployment | � In Progress | Application deployment engine |
+| **Validation** | Post-Deploy Testing | 🔄 Planned | End-to-end validation framework |
 
 ### Technology Architecture
 
 #### **Core Technologies**
 
-- **Go 1.21+**: Modern Go with enhanced performance
-- **Cobra**: Enterprise CLI framework with auto-completion  
-- **JSON Configuration**: Type-safe configuration with validation
-- **Zerolog**: High-performance structured logging
-- **Pterm**: Professional terminal UI with progress tracking
+- **Go 1.21+**: Modern Go with enhanced performance and generics
+- **Cobra**: Enterprise CLI framework with auto-completion and rich help
+- **JSON Configuration**: Type-safe configuration with comprehensive validation
+- **Zerolog**: High-performance structured logging with multiple output formats
+- **Pterm**: Professional terminal UI with progress tracking and beautiful output
 
 #### **Enterprise Libraries**
 
-- **go-containerregistry**: OCI registry operations and authentication
-- **go-git**: Git repository operations and version control
-- **go-playground/validator**: Comprehensive input validation
+- **go-containerregistry**: OCI registry operations and multi-registry authentication
+- **go-git**: Git repository operations, cloning, and version control
+- **go-playground/validator**: Comprehensive input validation with custom rules
 - **viper**: Configuration management with environment variable support
 
-### Data Flow Design
+#### **Infrastructure Components**
+
+- **Terraform Manager**: Multi-cloud infrastructure provisioning (AWS/Azure/GCP)
+- **Makefile Manager**: Enterprise Makefile execution with timeout and environment management
+- **Artifacts Manager**: OCI image, Helm chart, and Terraform module synchronization
+- **Progress Manager**: Real-time progress tracking with pterm integration
+
+### Execution Flow Architecture
 
 ```plaintext
 User Command Input
         │
         ▼
 ┌─────────────────┐
-│  Command Parser │ (Cobra)
+│  Command Parser │ (Cobra + Viper)
 │  & Validation   │
 └─────────────────┘
         │
         ▼
 ┌─────────────────┐
-│  Configuration  │ (JSON + Validation)
-│  Loading        │
+│  Configuration  │ (JSON + go-playground/validator)
+│  Loading & Val. │
 └─────────────────┘
         │
         ▼
 ┌─────────────────┐
-│  Business Logic │ (pkg/* modules)
-│  Execution      │
+│ Infrastructure  │ (Multi-Mode Manager)
+│ Mode Selection  │ terraform|makefile|hybrid
 └─────────────────┘
         │
         ▼
-┌─────────────────┐
-│  Progress UI &  │ (pterm + zerolog)
-│  Logging        │
-└─────────────────┘
-        │
-        ▼
-┌─────────────────┐
-│  External APIs  │ (OCI registries, Git)
-│  Integration    │
-└─────────────────┘
+┌─────────────────┬─────────────────┬─────────────────┐
+│ Terraform Mgr   │ Makefile Mgr    │ Hybrid Mode     │
+│ (AWS/Azure/GCP) │ (Target Exec)   │ (Combined)      │
+└─────────────────┴─────────────────┴─────────────────┘
+        │                 │                 │
+        ▼                 ▼                 ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  Progress UI &  │ │ Structured      │ │ Audit Trail &   │
+│  Real-time      │ │ Logging         │ │ Reporting       │
+│  Feedback       │ │ (zerolog)       │ │ (JSON Reports)  │
+└─────────────────┘ └─────────────────┘ └─────────────────┘
+        │                 │                 │
+        ▼                 ▼                 ▼
+┌─────────────────┬─────────────────┬─────────────────┐
+│ Cloud Providers │ Git Repositories│ OCI Registries  │
+│ (Infrastructure)│ (Source Code)   │ (Artifacts)     │
+└─────────────────┴─────────────────┴─────────────────┘
+```
+
+### Package Structure & Responsibilities
+
+```plaintext
+e2e-k8s-installer/
+├── main.go                          # Application entry point
+├── cmd/                            # Command implementations
+│   ├── root.go                     # Root command & global flags
+│   ├── setup.go                    # Workspace initialization
+│   ├── package_pull.go             # Artifact synchronization
+│   ├── provision_infra.go          # Infrastructure provisioning (multi-mode)
+│   ├── deploy.go                   # Application deployment
+│   ├── db_migrate.go               # Database migrations
+│   ├── post_validate.go            # Post-deployment validation
+│   ├── e2e_test.go                 # End-to-end testing
+│   └── install.go                  # Full workflow orchestration
+├── pkg/                            # Business logic packages
+│   ├── config/                     # Configuration management
+│   │   ├── types.go                # Configuration structs & validation
+│   │   └── validation.go           # Custom validation rules
+│   ├── infrastructure/             # Multi-mode infrastructure manager
+│   │   └── manager.go              # Unified terraform/makefile/hybrid interface
+│   ├── terraform/                  # Terraform operations
+│   │   └── manager.go              # Multi-cloud Terraform management
+│   ├── makefile/                   # Makefile execution
+│   │   └── manager.go              # Enterprise Makefile operations
+│   ├── artifacts/                  # Artifact synchronization
+│   │   └── manager.go              # OCI/Helm/Git operations
+│   ├── logger/                     # Structured logging
+│   └── progress/                   # Progress tracking & UI
+└── configs/                        # Sample configurations
+    ├── terraform-config.json       # Terraform mode example
+    ├── makefile-config.json        # Makefile mode example  
+    └── hybrid-config.json          # Hybrid mode example
 ```
 
 ## 📋 Requirements
@@ -772,9 +884,11 @@ The installer uses **JSON-based configuration** with comprehensive validation. T
     }
   },
   "infrastructure": {
-    "provider": "aws",
+    "provisionMode": "terraform",     // "terraform" | "makefile" | "hybrid"
+    "provider": "aws",                // aws | azure | gcp
     "region": "us-west-2",
     "terraform": {
+      "enabled": true,
       "workingDir": "./terraform",
       "varsFile": "terraform.tfvars",
       "backend": {
@@ -784,6 +898,16 @@ The installer uses **JSON-based configuration** with comprehensive validation. T
           "key": "k8s-installer/terraform.tfstate",
           "region": "us-west-2"
         }
+      }
+    },
+    "makefile": {
+      "enabled": false,
+      "makefilePath": "./Makefile",
+      "workingDirectory": "./infrastructure",
+      "targets": ["init", "plan", "apply"],
+      "timeout": "30m",
+      "env": {
+        "TF_VAR_region": "us-west-2"
       }
     }
   },
@@ -847,6 +971,84 @@ The installer uses **JSON-based configuration** with comprehensive validation. T
 }
 ```
 
+### Multi-Mode Infrastructure Configuration Examples
+
+The installer supports three distinct infrastructure provisioning modes:
+
+#### **Terraform Mode Configuration**
+
+```json
+{
+  "infrastructure": {
+    "provisionMode": "terraform",
+    "provider": "aws",
+    "region": "us-west-2",
+    "terraform": {
+      "enabled": true,
+      "workingDir": "./terraform",
+      "varsFile": "terraform.tfvars",
+      "backend": {
+        "type": "s3",
+        "config": {
+          "bucket": "my-terraform-state",
+          "key": "k8s-installer/terraform.tfstate",
+          "region": "us-west-2"
+        }
+      }
+    }
+  }
+}
+```
+
+#### **Makefile Mode Configuration**
+
+```json
+{
+  "infrastructure": {
+    "provisionMode": "makefile",
+    "makefile": {
+      "enabled": true,
+      "makefilePath": "./Makefile",
+      "workingDirectory": "./infrastructure",
+      "targets": ["init", "plan", "apply", "destroy"],
+      "timeout": "30m",
+      "env": {
+        "AWS_REGION": "us-west-2",
+        "TF_VAR_cluster_name": "my-k8s-cluster"
+      }
+    }
+  }
+}
+```
+
+#### **Hybrid Mode Configuration**
+
+```json
+{
+  "infrastructure": {
+    "provisionMode": "hybrid",
+    "provider": "aws",
+    "region": "us-west-2",
+    "terraform": {
+      "enabled": true,
+      "workingDir": "./terraform",
+      "varsFile": "terraform.tfvars"
+    },
+    "makefile": {
+      "enabled": true,
+      "makefilePath": "./Makefile",
+      "workingDirectory": "./infrastructure",
+      "targets": ["validate", "init", "plan", "apply"],
+      "timeout": "45m",
+      "env": {
+        "TF_VAR_region": "us-west-2",
+        "TF_VAR_environment": "production"
+      }
+    }
+  }
+}
+```
+
 ### Configuration Validation
 
 The configuration system includes comprehensive validation:
@@ -872,12 +1074,13 @@ The configuration system includes comprehensive validation:
 
 ### Currently Available Commands
 
-The installer currently provides two core working commands:
+The installer provides three core working commands with comprehensive multi-mode infrastructure provisioning:
 
 ```bash
 # Core Working Commands
-./e2e-k8s-installer set-up        # Initialize workspace and validate prerequisites  
+./e2e-k8s-installer setup        # Initialize workspace and validate prerequisites  
 ./e2e-k8s-installer package-pull  # Synchronize OCI images, Helm charts, and Terraform modules
+./e2e-k8s-installer provision-infra # Multi-mode infrastructure provisioning (terraform/makefile/hybrid)
 
 # Built-in Help System
 ./e2e-k8s-installer --help        # Show all available commands
@@ -887,8 +1090,7 @@ The installer currently provides two core working commands:
 ### Planned Commands (In Development)
 
 ```bash
-# Infrastructure & Deployment (Coming Soon)
-./e2e-k8s-installer provision-infra   # Deploy infrastructure with Terraform
+# Application Management (Coming Soon)
 ./e2e-k8s-installer db-migrate        # Run database migrations
 ./e2e-k8s-installer deploy            # Deploy applications with Helm
 ./e2e-k8s-installer post-validate     # Post-deployment validation
@@ -956,11 +1158,75 @@ Synchronize artifacts from vendor to client registries:
 - Provides real-time progress tracking with beautiful UI
 - Validates all artifacts after synchronization
 
+#### 3. provision-infra Command
+
+Deploy infrastructure using multi-mode provisioning (terraform/makefile/hybrid):
+
+```bash
+# Multi-mode infrastructure provisioning
+./e2e-k8s-installer provision-infra --config installer-config.json
+
+# Terraform mode (pure Terraform)
+./e2e-k8s-installer provision-infra --config terraform-config.json
+
+# Makefile mode (pure Makefile workflows)  
+./e2e-k8s-installer provision-infra --config makefile-config.json
+
+# Hybrid mode (Makefile orchestrating Terraform modules)
+./e2e-k8s-installer provision-infra --config hybrid-config.json
+
+# Plan-only mode (see what would be provisioned)
+./e2e-k8s-installer provision-infra --config config.json --plan-only
+
+# Dry run to validate configuration
+./e2e-k8s-installer provision-infra --config config.json --dry-run
+```
+
+**What it does:**
+
+- **Multi-Mode Support**: Supports terraform, makefile, and hybrid provisioning modes
+- **Cloud-Native Deployment**: Provisions Kubernetes clusters and managed services
+- **Infrastructure Validation**: Runs embedded health checks and validation
+- **State Management**: Manages Terraform state and Makefile execution context
+- **Progress Tracking**: Real-time progress with beautiful terminal UI
+- **Comprehensive Reporting**: Generates detailed infrastructure reports
+
+**Configuration Examples:**
+
+```json
+{
+  "infrastructure": {
+    "provisionMode": "terraform",     // "terraform" | "makefile" | "hybrid"
+    "provider": "aws",                // aws | azure | gcp
+    "region": "us-west-2",
+    "terraform": {
+      "enabled": true,
+      "workingDir": "./terraform",
+      "varsFile": "terraform.tfvars"
+    }
+  }
+}
+```
+
+```json
+{
+  "infrastructure": {
+    "provisionMode": "makefile",
+    "makefile": {
+      "enabled": true,
+      "makefilePath": "./Makefile",
+      "workingDirectory": "./infrastructure",
+      "targets": ["init", "plan", "apply"]
+    }
+  }
+}
+```
+
 ### Current Workflow
 
 ```bash
 # Step 1: Initialize workspace
-./e2e-k8s-installer set-up --workspace ./my-deployment
+./e2e-k8s-installer setup --workspace ./my-deployment
 
 # Step 2: Navigate to workspace
 cd my-deployment
@@ -971,8 +1237,10 @@ vim installer-config.json
 # Step 4: Synchronize artifacts
 ./e2e-k8s-installer package-pull --config installer-config.json
 
+# Step 5: Provision infrastructure (NEW - Multi-mode support)
+./e2e-k8s-installer provision-infra --config installer-config.json
+
 # Future steps (coming soon):
-# Step 5: ./e2e-k8s-installer provision-infra --config installer-config.json  
 # Step 6: ./e2e-k8s-installer deploy --config installer-config.json
 # Step 7: ./e2e-k8s-installer post-validate --config installer-config.json
 ```
