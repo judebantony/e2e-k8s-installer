@@ -36,11 +36,71 @@ The installer automates provisioning, configuration, deployment, validation, and
 
 ### Artifact preparation & shipping into the client environment
 
-- **App Container Images (OCI)**: Transfer from vendor registries → client's private registry (or verify presence if client already mirrors). GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry supported as source registries and Harbor, Nexus, JFrog Artifactory as destination registries
-- **Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). The charts are versioned and tagged in the vendor GitHub repo
-- **Terraform Modules**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
-- **Database Migration & Repair Scripts**: Transfer from vendor GitHub → client GitHub (or maintain local checkout), versioned and tagged in the vendor GitHub repo
-- **Health Checks & Validation**: Ensure all artifacts are verified, scanned, and ready for deployment with detailed reporting
+```mermaid
+flowchart TD
+    subgraph "🏭 Vendor Environment"
+        VR1[📦 GitHub Packages]
+        VR2[📦 DockerHub] 
+        VR3[📦 Azure ACR]
+        VR4[📦 AWS ECR]
+        VR5[📦 GCP Artifact Registry]
+        
+        VG1[📚 Vendor GitHub - Helm Charts]
+        VG2[📚 Vendor GitHub - Terraform Modules]
+        VG3[📚 Vendor GitHub - DB Scripts]
+        
+        VR1 & VR2 & VR3 & VR4 & VR5 --> |OCI Images| SCAN[🔍 Security Scan & Validation]
+        VG1 & VG2 & VG3 --> |Git Artifacts| VERIFY[✅ Version & Tag Verification]
+    end
+
+    subgraph "🚀 Transfer Process"
+        SCAN --> PULL[📥 Pull & Package]
+        VERIFY --> PULL
+        PULL --> MIRROR[🔄 Mirror/Transfer Decision]
+        MIRROR --> |Mirror Enabled| PUSH[📤 Push to Client Registry]
+        MIRROR --> |Local Checkout| LOCAL[💾 Local Storage]
+    end
+
+    subgraph "🏢 Client Environment" 
+        CR1[🏬 Harbor Registry]
+        CR2[🏬 Nexus Registry]
+        CR3[🏬 JFrog Artifactory]
+        
+        CG1[📚 Client GitHub - Helm Charts]
+        CG2[📚 Client GitHub - Terraform Modules] 
+        CG3[📚 Client GitHub - DB Scripts]
+        
+        PUSH --> CR1 & CR2 & CR3
+        LOCAL --> |Git Mirror| CG1 & CG2 & CG3
+        LOCAL --> |Local Files| WORKSPACE[💼 Local Workspace]
+    end
+
+    subgraph "📊 Validation & Reporting"
+        CR1 & CR2 & CR3 --> HEALTH[🏥 Health Checks]
+        CG1 & CG2 & CG3 --> HEALTH
+        WORKSPACE --> HEALTH
+        HEALTH --> REPORT[📋 Package-Pull Report]
+        REPORT --> |Success| READY[✅ Ready for Deployment]
+        REPORT --> |Issues| ALERT[⚠️ Validation Alerts]
+    end
+
+    style VR1 fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    style VR2 fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    style VR3 fill:#E1F5FE,stroke:#0288D1,stroke-width:2px
+    style VR4 fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    style VR5 fill:#E8F5E8,stroke:#388E3C,stroke-width:2px
+    style SCAN fill:#FFF3E0,stroke:#FF8F00,stroke-width:2px
+    style READY fill:#E8F5E8,stroke:#4CAF50,stroke-width:2px
+    style ALERT fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+```
+
+**Detailed Artifact Flow:**
+
+- **🖼️ OCI Container Images**: Transfer from vendor registries (GitHub Packages, DockerHub, Azure ACR, AWS ECR, GCP Artifact Registry) → client's private registry (Harbor, Nexus, JFrog Artifactory) with security scanning
+- **📊 Helm Charts**: Migration from vendor GitHub → client GitHub (or maintain local checkout if mirroring is disabled). Charts are versioned and tagged in vendor repositories
+- **🏗️ Terraform Modules**: Transfer from vendor GitHub → client GitHub (or local checkout), with version control and tagging
+- **🗃️ Database Migration Scripts**: Transfer from vendor GitHub → client GitHub (or local checkout), including repair and migration scripts
+- **🔍 Health Checks & Validation**: Comprehensive verification, scanning, and readiness validation with detailed JSON reporting
 
 ### Full E2E installation once artifacts are in client environment
 
@@ -67,24 +127,22 @@ The installer automates provisioning, configuration, deployment, validation, and
 
 ```mermaid
 flowchart TD
-    A[🏁 set-up] --> B[📦 package-pull]
-    B --> C[☁️ provision-infra]
-    C --> D[🧩 db-migrate]
-    D --> E[🚀 deploy]
-    E --> F[🔍 post-validate]
-    F --> G[✅ e2e-test]
-    G --> H[📊 install-summary.json]
-
-    subgraph "💡 Each Step is Idempotent & Re-runnable"
-        A
-        B
-        C
-        D
-        E
-        F
-        G
-    end
-
+ subgraph subGraph0["💡 Each Step is Idempotent & Re-runnable"]
+        A["🏁 set-up"]
+        B["📦 package-pull"]
+        C["☁️ provision-infra"]
+        D["🧩 db-migrate"]
+        E["🚀 deploy"]
+        F["🔍 post-validate"]
+        G["✅ e2e-test"]
+  end
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H["📊 install-summary.json"]
     style A fill:#C6E2FF,stroke:#0366d6,stroke-width:2px
     style B fill:#E0F7FA,stroke:#00ACC1,stroke-width:2px
     style C fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px
