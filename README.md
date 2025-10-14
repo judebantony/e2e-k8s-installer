@@ -4,11 +4,13 @@ A comprehensive, production-ready Go-based CLI tool for deploying and managing K
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/judebantony/e2e-k8s-installer)](https://goreportcard.com/report/github.com/judebantony/e2e-k8s-installer)
 [![GitHub Release](https://img.shields.io/github/release/judebantony/e2e-k8s-installer.svg)](https://github.com/judebantony/e2e-k8s-installer/releases/latest)
+[![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ## 🎯 Project Overview
 
 Design and develop a unified, cross-platform, end-to-end (E2E) installer for deploying and managing a Kubernetes-based application across startup, mid-size, enterprise, and air-gapped environments.
-The installer will automate provisioning, configuration, deployment, validation, and lifecycle management across Azure, AWS, GCP, and on-prem (OpenShift, Rancher, etc.) infrastructures while ensuring compliance, security, and resilience.
+The installer automates provisioning, configuration, deployment, validation, and lifecycle management across Azure, AWS, GCP, and on-premises (OpenShift, Rancher, etc.) infrastructures while ensuring compliance, security, and resilience.
 
 This installer provides a unified approach to Kubernetes cluster deployment with:
 
@@ -17,6 +19,30 @@ This installer provides a unified approach to Kubernetes cluster deployment with
 - **Security-First**: Integrated security scanning, RBAC, and policy enforcement
 - **Enterprise Ready**: Production-grade monitoring, logging, and operational tools
 - **Validation-Driven**: Comprehensive pre-flight and post-deployment validation
+
+## 🚀 Current Implementation Status
+
+### ✅ **Completed Features**
+
+| Component | Status | Description |
+|-----------|---------|-------------|
+| **🏗️ Core Architecture** | ✅ Complete | Go 1.21+ with enhanced enterprise libraries |
+| **⚙️ Configuration System** | ✅ Complete | JSON-based configuration with comprehensive validation |
+| **📊 Logging & Progress** | ✅ Complete | Structured logging (zerolog) + beautiful progress indicators (pterm) |
+| **🔧 set-up Command** | ✅ Complete | Workspace initialization and prerequisite validation |
+| **📦 package-pull Command** | ✅ Complete | OCI image sync, Helm chart management, Git repository handling |
+| **🎨 CLI Experience** | ✅ Complete | Professional banner, color-coded output, comprehensive help |
+
+### 🚧 **In Development**
+
+| Component | Status | Priority |
+|-----------|---------|----------|
+| **☁️ provision-infra Command** | 🔜 Next | Terraform infrastructure deployment |
+| **🗄️ db-migrate Command** | 🔜 Planned | Database initialization and migrations |
+| **🚀 deploy Command** | 🔜 Planned | Helm chart deployment with health validation |
+| **✅ post-validate Command** | 🔜 Planned | Comprehensive system validation |
+| **🧪 e2e-test Command** | 🔜 Planned | End-to-end testing suite |
+| **🎯 install Orchestrator** | 🔜 Planned | Complete workflow orchestration |
 
 ## 🎯 Core Objectives
 
@@ -185,6 +211,32 @@ graph LR
     B3 --> B4
 ```
 
+## Prerequisite & Dependency Flow
+
+```mermaid
+sequenceDiagram
+    participant U as 👤 User
+    participant CLI as 🧰 Installer CLI
+    participant CFG as ⚙️ Config File
+    participant REG as 🏗️ Registries
+    participant GIT as 🧬 GitHub Repos
+    participant CLOUD as ☁️ Cloud Providers
+    participant K8S as 🌀 Kubernetes Cluster
+
+    U->>CLI: Run "installer install --config installer.json"
+    CLI->>CFG: Validate configuration & credentials
+    CLI->>REG: Authenticate to Vendor & Client registries
+    CLI->>GIT: Clone Helm, Terraform, DB repos
+    CLI->>CLOUD: Provision infra using Terraform
+    CLI->>K8S: Create/validate cluster connectivity
+    CLI->>REG: Pull/mirror OCI images (package-pull)
+    CLI->>K8S: Run DB migrations (Flyway/Liquibase)
+    CLI->>K8S: Deploy Helm charts in sequence
+    CLI->>K8S: Run health checks & smoke tests
+    CLI->>CLI: Generate structured JSON reports
+    CLI-->>U: Display progress bars & final summary
+```
+
 ## 🛠️ Installer Features
 
 ### 🎮 Modes of Operation
@@ -331,29 +383,97 @@ graph LR
 
 ## 🏗️ Architecture
 
-### Core Components
-```
+### Current Implementation Architecture
+
+```plaintext
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   CLI Layer     │    │  Validation      │    │  Installation   │
-│   (Cobra)       │───▶│  Engine          │───▶│  Engine         │
-│                 │    │                  │    │                 │
+│   CLI Layer     │    │  Configuration   │    │  Command        │
+│   (Cobra)       │───▶│  Management      │───▶│  Execution      │
+│   Beautiful UI  │    │  (JSON + Valid.) │    │  Engine         │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│ Configuration   │    │  Cloud Provider  │    │  Security       │
-│ Management      │    │  Modules         │    │  Framework      │
-│ (Viper/YAML)    │    │  (AWS/Azure/GCP) │    │  (RBAC/Policies)│
+│  Logging &      │    │   Workspace      │    │   Artifact      │
+│  Progress UI    │    │  Management      │    │ Synchronization │
+│  (zerolog+pterm)│    │  (set-up cmd)    │    │ (package-pull)  │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Prerequisites │    │  OCI Registry    │    │  Git Repository │
+│   Validation    │    │   Operations     │    │   Management    │
+│ (kubectl/helm)  │    │(go-containerreg)│    │   (go-git)      │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
-### Key Features
-- 🔧 **Multi-Phase Installation**: Phased deployment with rollback capabilities
-- 🛡️ **Integrated Security**: Trivy, Falco, OPA Gatekeeper integration
-- 📊 **Built-in Monitoring**: Prometheus, Grafana, ELK stack deployment
-- ☁️ **Cloud Agnostic**: Terraform-based infrastructure provisioning
-- 🔍 **Comprehensive Validation**: Pre-flight checks and environment validation
-- 📝 **Configuration-Driven**: YAML-based declarative configuration
+### Implementation Status & Features
+
+| Layer | Component | Status | Description |
+|-------|-----------|--------|-------------|
+| **CLI** | Cobra Framework | ✅ Complete | Professional CLI with auto-completion |
+| **CLI** | Beautiful UI | ✅ Complete | pterm-based progress bars and colors |
+| **Config** | JSON Processing | ✅ Complete | go-playground/validator integration |
+| **Config** | Environment Variables | ✅ Complete | Support for ENV var overrides |
+| **Commands** | set-up Command | ✅ Complete | Workspace initialization & validation |
+| **Commands** | package-pull Command | ✅ Complete | OCI/Helm/Terraform synchronization |
+| **Artifacts** | OCI Image Management | ✅ Complete | Cross-registry synchronization |
+| **Artifacts** | Helm Chart Management | ✅ Complete | Repository cloning and mirroring |
+| **Artifacts** | Terraform Modules | ✅ Complete | Git-based module management |
+| **Infrastructure** | Terraform Deployment | 🔄 Planned | Infrastructure provisioning |
+| **Applications** | Helm Deployment | 🔄 Planned | Application deployment |
+| **Validation** | Post-Deploy Testing | 🔄 Planned | End-to-end validation |
+
+### Technology Architecture
+
+#### **Core Technologies**
+- **Go 1.21+**: Modern Go with enhanced performance
+- **Cobra**: Enterprise CLI framework with auto-completion  
+- **JSON Configuration**: Type-safe configuration with validation
+- **Zerolog**: High-performance structured logging
+- **Pterm**: Professional terminal UI with progress tracking
+
+#### **Enterprise Libraries**
+- **go-containerregistry**: OCI registry operations and authentication
+- **go-git**: Git repository operations and version control
+- **go-playground/validator**: Comprehensive input validation
+- **viper**: Configuration management with environment variable support
+
+### Data Flow Design
+
+```plaintext
+User Command Input
+        │
+        ▼
+┌─────────────────┐
+│  Command Parser │ (Cobra)
+│  & Validation   │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│  Configuration  │ (JSON + Validation)
+│  Loading        │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│  Business Logic │ (pkg/* modules)
+│  Execution      │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│  Progress UI &  │ (pterm + zerolog)
+│  Logging        │
+└─────────────────┘
+        │
+        ▼
+┌─────────────────┐
+│  External APIs  │ (OCI registries, Git)
+│  Integration    │
+└─────────────────┘
+```
 
 ## 📋 Requirements
 
@@ -362,51 +482,60 @@ graph LR
 | Component | Minimum | Recommended | Notes |
 |-----------|---------|-------------|-------|
 | **Operating System** | Linux, macOS, Windows | Linux (Ubuntu 20.04+) | Cross-platform Go binary |
-| **CPU** | 2 cores | 4+ cores | For build and deployment |
-| **Memory** | 4GB RAM | 8GB+ RAM | Depends on cluster size |
-| **Storage** | 20GB free | 50GB+ free | For images and logs |
-| **Network** | Internet access | High bandwidth | For container images |
+| **CPU** | 2 cores | 4+ cores | For build and deployment operations |
+| **Memory** | 4GB RAM | 8GB+ RAM | Depends on artifact processing |
+| **Storage** | 10GB free | 20GB+ free | For OCI images, charts, and logs |
+| **Network** | Internet access | High bandwidth | For downloading artifacts |
 
 ### Required Dependencies
 
-#### Core Tools
+#### **Essential Tools** (Required for current implementation)
+
 ```bash
-# Go Development (for building from source)
-Go 1.21+                    # Language runtime
-Git 2.30+                  # Version control
+# Core Dependencies (Must be installed)
+kubectl 1.28+              # Kubernetes CLI - REQUIRED for set-up validation
+helm 3.8+                  # Package manager - REQUIRED for set-up validation  
+terraform 1.5+             # Infrastructure as Code - REQUIRED for set-up validation
+git 2.30+                  # Version control - Used by package-pull command
 
-# Kubernetes Tools
-kubectl 1.28+              # Kubernetes CLI
-helm 3.8+                  # Package manager
-
-# Infrastructure Tools
-terraform 1.5+             # Infrastructure as Code
-docker 20.10+              # Container runtime (optional for build)
+# Go Development (Optional - only for building from source)
+Go 1.21+                   # Language runtime
 ```
 
-#### Cloud Provider Tools (Choose based on target)
+#### **Cloud Provider Tools** (Choose based on target environment)
+
 ```bash
-# AWS
+# AWS (if targeting AWS)
 aws-cli 2.0+               # AWS Command Line Interface
 aws-iam-authenticator      # AWS IAM authentication
 
-# Azure
+# Azure (if targeting Azure)  
 azure-cli 2.30+            # Azure Command Line Interface
 
-# Google Cloud
+# Google Cloud (if targeting GCP)
 gcloud 400.0+              # Google Cloud SDK
 ```
 
-### Optional Tools
-```bash
-# Security Scanning
-trivy latest               # Vulnerability scanner
-falco latest               # Runtime security
+### Current Implementation Dependencies
 
-# Monitoring (auto-installed by installer)
-prometheus                 # Metrics collection
-grafana                   # Visualization
-elasticsearch             # Log storage
+The installer uses the following Go dependencies (automatically handled):
+
+```go
+// Core CLI and Configuration
+github.com/spf13/cobra v1.8.0           // CLI framework
+github.com/spf13/viper v1.17.0          // Configuration management
+github.com/go-playground/validator/v10   // Configuration validation
+
+// Enhanced User Experience  
+github.com/rs/zerolog v1.31.0           // Structured logging
+github.com/pterm/pterm v0.12.70         // Progress bars & beautiful output
+
+// Artifact Management
+github.com/google/go-containerregistry   // OCI image operations
+github.com/go-git/go-git/v5 v5.9.0      // Git repository operations
+
+// Configuration Processing
+gopkg.in/yaml.v3 v3.0.1                 // YAML processing
 ```
 
 ## � Quick Start
@@ -414,205 +543,341 @@ elasticsearch             # Log storage
 ### Installation Options
 
 #### Option 1: Download Pre-built Binary (Recommended)
+
 ```bash
-# Download latest release
-curl -L https://github.com/judebantony/e2e-k8s-installer/releases/latest/download/k8s-installer-$(uname -s)-$(uname -m) -o k8s-installer
-chmod +x k8s-installer
-sudo mv k8s-installer /usr/local/bin/
+# Download latest release (when available)
+curl -L https://github.com/judebantony/e2e-k8s-installer/releases/latest/download/e2e-k8s-installer-$(uname -s)-$(uname -m) -o e2e-k8s-installer
+chmod +x e2e-k8s-installer
+sudo mv e2e-k8s-installer /usr/local/bin/
 ```
 
-#### Option 2: Build from Source
+#### Option 2: Build from Source (Current Method)
+
 ```bash
 # Clone repository
 git clone https://github.com/judebantony/e2e-k8s-installer.git
 cd e2e-k8s-installer
 
 # Build binary
-go build -o bin/k8s-installer .
+go build -o e2e-k8s-installer .
 
 # Optional: Install globally
-sudo mv bin/k8s-installer /usr/local/bin/
+sudo mv e2e-k8s-installer /usr/local/bin/
 ```
 
-### First Run Validation
+### Verify Installation
 
 ```bash
-# Check installer version
-k8s-installer version
+# Check installer version and help
+./e2e-k8s-installer --help
 
-# Validate system requirements
-k8s-installer validate system
-
-# Generate sample configuration
-k8s-installer config generate > sample-config.yaml
+# View available commands
+./e2e-k8s-installer --help
 ```
+
+### First Run - Available Commands
+
+The installer currently provides these working commands:
+
+```bash
+# 1. Initialize workspace and validate prerequisites
+./e2e-k8s-installer set-up --workspace ./my-k8s-project
+
+# 2. Synchronize artifacts (requires configuration file)
+./e2e-k8s-installer package-pull --config installer-config.json
+
+# Check command-specific help
+./e2e-k8s-installer set-up --help
+./e2e-k8s-installer package-pull --help
+```
+
+### Quick Workflow Example
+
+```bash
+# Step 1: Create a workspace
+./e2e-k8s-installer set-up --workspace ./test-deployment
+
+# Step 2: Navigate to workspace (after successful setup)
+cd test-deployment
+
+# Step 3: Edit the generated configuration  
+vim installer-config.json
+
+# Step 4: Pull artifacts (future step - requires configuration)
+# ./e2e-k8s-installer package-pull --config installer-config.json
+```
+
+> **Note**: The `set-up` command requires `kubectl`, `helm`, and `terraform` to be installed and available in PATH for prerequisite validation.
 
 ## ⚙️ Configuration
 
-### Configuration Structure
+### Current Configuration System
 
-The installer uses YAML configuration with the following structure:
+The installer uses **JSON-based configuration** with comprehensive validation. The `set-up` command generates a sample configuration file that can be customized for your deployment needs.
 
-```yaml
-# cluster: Core cluster configuration
-cluster:
-  name: "my-k8s-cluster"           # Cluster identifier
-  version: "1.28"                  # Kubernetes version
-  provider: "aws"                  # Cloud provider (aws/azure/gcp/onprem)
-  region: "us-west-2"             # Target region
+#### Configuration File Structure
 
-# cloud: Provider-specific settings
-cloud:
-  aws:
-    vpc_cidr: "10.0.0.0/16"       # VPC network range
-    instance_type: "t3.medium"     # Node instance size
-    node_count: 3                  # Initial node count
-    zones: ["us-west-2a", "us-west-2b"]  # Availability zones
-
-# kubernetes: K8s-specific configuration  
-kubernetes:
-  network_plugin: "calico"         # CNI plugin
-  service_cidr: "10.96.0.0/12"    # Service network
-  pod_cidr: "10.244.0.0/16"       # Pod network
-  
-# monitoring: Observability stack
-monitoring:
-  prometheus:
-    enabled: true                  # Enable metrics collection
-    retention: "30d"               # Data retention period
-  grafana:
-    enabled: true                  # Enable dashboards
-    
-# security: Security configurations
-security:
-  rbac: true                       # Enable RBAC
-  network_policies: true           # Enable network policies
-  scanning:
-    enabled: true                  # Enable vulnerability scanning
-    tools: ["trivy", "falco"]      # Security tools
+```json
+{
+  "installer": {
+    "version": "1.0.0",
+    "workspace": "./workspace",
+    "verbose": false,
+    "dryRun": false,
+    "logLevel": "info",
+    "logFormat": "json"
+  },
+  "artifacts": {
+    "images": {
+      "skipPull": false,
+      "vendor": {
+        "registry": "https://vendor-registry.io",
+        "auth": {
+          "token": "your-token-here"
+        }
+      },
+      "client": {
+        "registry": "https://your-registry.io",
+        "auth": {
+          "username": "your-username",
+          "password": "your-password"
+        }
+      }
+    },
+    "helm": {
+      "vendor": {
+        "url": "https://github.com/vendor/helm-charts.git",
+        "branch": "main",
+        "auth": {
+          "token": "your-git-token"
+        }
+      },
+      "client": {
+        "url": "https://github.com/your-org/helm-charts.git",
+        "branch": "main"
+      }
+    },
+    "terraform": {
+      "vendor": {
+        "url": "https://github.com/vendor/terraform-modules.git",
+        "branch": "main"
+      }
+    }
+  },
+  "infrastructure": {
+    "provider": "aws",
+    "region": "us-west-2",
+    "terraform": {
+      "workingDir": "./terraform",
+      "varsFile": "terraform.tfvars",
+      "backend": {
+        "type": "s3",
+        "config": {
+          "bucket": "my-terraform-state",
+          "key": "k8s-installer/terraform.tfstate",
+          "region": "us-west-2"
+        }
+      }
+    }
+  },
+  "database": {
+    "enabled": true,
+    "type": "postgresql",
+    "migration": {
+      "enabled": true,
+      "tool": "flyway",
+      "scriptsPath": "./migrations",
+      "initContainer": {
+        "image": "flyway/flyway:latest",
+        "namespace": "default"
+      }
+    }
+  },
+  "deployment": {
+    "k8s": {
+      "context": "default",
+      "namespace": "default",
+      "configPath": "~/.kube/config",
+      "timeout": "10m",
+      "waitTimeout": "5m"
+    },
+    "helm": {
+      "charts": [
+        {
+          "name": "app",
+          "path": "./charts/app",
+          "namespace": "default",
+          "values": "./values/production.yaml"
+        }
+      ]
+    },
+    "validation": {
+      "podHealth": true,
+      "serviceHealth": true,
+      "timeout": "5m",
+      "retryInterval": "30s"
+    }
+  },
+  "validation": {
+    "preInstall": {
+      "enabled": true,
+      "checks": ["prerequisites", "connectivity", "permissions"]
+    },
+    "postInstall": {
+      "enabled": true,
+      "healthChecks": [
+        {
+          "url": "http://localhost:8080/health",
+          "method": "GET",
+          "expectedStatus": 200,
+          "timeout": "30s",
+          "retries": 3,
+          "interval": "10s"
+        }
+      ]
+    }
+  }
+}
 ```
 
-### Configuration Examples
+### Configuration Validation
 
-#### AWS EKS Configuration
-```yaml
-cluster:
-  name: "production-eks"
-  version: "1.28"
-  provider: "aws"
-  region: "us-west-2"
+The configuration system includes comprehensive validation:
 
-cloud:
-  aws:
-    vpc_cidr: "10.0.0.0/16"
-    instance_type: "m5.large"
-    node_count: 3
-    zones: ["us-west-2a", "us-west-2b", "us-west-2c"]
-    
-monitoring:
-  prometheus:
-    enabled: true
-    storage: "100Gi"
-  grafana:
-    enabled: true
-```
+- **Required Fields**: Validates all mandatory configuration fields
+- **Format Validation**: Ensures URLs, durations, and other formats are correct
+- **File Existence**: Validates file paths and directories exist
+- **Semantic Validation**: Cross-field validation for logical consistency
 
-#### Azure AKS Configuration  
-```yaml
-cluster:
-  name: "production-aks"
-  version: "1.28"
-  provider: "azure"
-  region: "East US"
+### Generating Configuration
 
-cloud:
-  azure:
-    resource_group: "k8s-rg"
-    vm_size: "Standard_D2s_v3"
-    node_count: 3
-    
-security:
-  rbac: true
-  network_policies: true
+```bash
+# Generate sample configuration with set-up command
+./e2e-k8s-installer set-up --workspace ./my-project --config-file my-config.json
+
+# This creates a workspace with:
+# - Directory structure
+# - Sample installer-config.json file
+# - README with usage instructions
 ```
 
 ## 🎮 Usage Guide
 
-### Available Commands
+### Currently Available Commands
+
+The installer currently provides two core working commands:
 
 ```bash
-# Core Commands
-k8s-installer install     # Install new cluster
-k8s-installer validate    # Validate environment/config
-k8s-installer status      # Check cluster status
-k8s-installer upgrade     # Upgrade cluster
-k8s-installer config      # Configuration management
-k8s-installer version     # Show version info
+# Core Working Commands
+./e2e-k8s-installer set-up        # Initialize workspace and validate prerequisites  
+./e2e-k8s-installer package-pull  # Synchronize OCI images, Helm charts, and Terraform modules
 
-# Advanced Commands  
-k8s-installer backup      # Backup cluster state
-k8s-installer restore     # Restore from backup
-k8s-installer scale       # Scale cluster resources
-k8s-installer monitor     # Monitor cluster health
+# Built-in Help System
+./e2e-k8s-installer --help        # Show all available commands
+./e2e-k8s-installer [command] --help  # Command-specific help
 ```
 
-### Installation Workflows
+### Planned Commands (In Development)
 
-#### Interactive Installation
 ```bash
-# Start interactive wizard
-k8s-installer install --interactive
-
-# Follow prompts for:
-# - Cloud provider selection
-# - Cluster sizing
-# - Security preferences
-# - Monitoring setup
+# Infrastructure & Deployment (Coming Soon)
+./e2e-k8s-installer provision-infra   # Deploy infrastructure with Terraform
+./e2e-k8s-installer db-migrate        # Run database migrations
+./e2e-k8s-installer deploy            # Deploy applications with Helm
+./e2e-k8s-installer post-validate     # Post-deployment validation
+./e2e-k8s-installer e2e-test          # End-to-end testing
+./e2e-k8s-installer install           # Orchestrated full installation
 ```
 
-#### Configuration-Based Installation
+### Command Usage Examples
+
+#### 1. set-up Command
+
+Initialize a workspace and validate prerequisites:
+
 ```bash
-# Generate base configuration
-k8s-installer config generate --provider aws > aws-cluster.yaml
+# Basic workspace setup
+./e2e-k8s-installer set-up --workspace ./my-k8s-project
 
-# Edit configuration
-vim aws-cluster.yaml
+# Custom configuration file name
+./e2e-k8s-installer set-up --workspace ./project --config-file custom-config.json
 
-# Validate configuration
-k8s-installer validate --config aws-cluster.yaml
+# Force overwrite existing files
+./e2e-k8s-installer set-up --workspace ./project --force
 
-# Install with dry-run (recommended)
-k8s-installer install --config aws-cluster.yaml --dry-run
-
-# Actual installation
-k8s-installer install --config aws-cluster.yaml
+# Dry run to see what would be created
+./e2e-k8s-installer set-up --workspace ./project --dry-run
 ```
 
-#### Multi-Environment Installation
+**What it does:**
+- Creates workspace directory structure
+- Validates prerequisites (kubectl, helm, terraform)
+- Generates sample installer-config.json
+- Creates subdirectories for artifacts, logs, charts, etc.
+- Provides comprehensive README with usage instructions
+
+#### 2. package-pull Command
+
+Synchronize artifacts from vendor to client registries:
+
 ```bash
-# Development environment
-k8s-installer install --config dev-config.yaml --environment dev
+# Pull all artifacts (images, charts, terraform)
+./e2e-k8s-installer package-pull --config installer-config.json
 
-# Staging environment  
-k8s-installer install --config staging-config.yaml --environment staging
+# Pull only OCI images  
+./e2e-k8s-installer package-pull --config config.json --images-only
 
-# Production environment
-k8s-installer install --config prod-config.yaml --environment production
+# Pull only Helm charts
+./e2e-k8s-installer package-pull --config config.json --helm-only
+
+# Pull only Terraform modules
+./e2e-k8s-installer package-pull --config config.json --terraform-only
+
+# Dry run to see what would be pulled
+./e2e-k8s-installer package-pull --config config.json --dry-run
+
+# Disable parallel processing
+./e2e-k8s-installer package-pull --config config.json --parallel=false
 ```
 
-### Validation Commands
+**What it does:**
+- Synchronizes OCI images between registries with authentication
+- Clones and mirrors Helm chart repositories
+- Manages Terraform module repositories
+- Provides real-time progress tracking with beautiful UI
+- Validates all artifacts after synchronization
+
+### Current Workflow
 
 ```bash
-# System validation
-k8s-installer validate system              # Check prerequisites
-k8s-installer validate network             # Test connectivity
-k8s-installer validate config              # Validate configuration
-k8s-installer validate cloud --provider aws # Check cloud access
+# Step 1: Initialize workspace
+./e2e-k8s-installer set-up --workspace ./my-deployment
 
-# Cluster validation
-k8s-installer validate cluster             # Post-install validation
-k8s-installer validate security            # Security compliance check
-k8s-installer validate monitoring          # Monitoring stack check
+# Step 2: Navigate to workspace
+cd my-deployment
+
+# Step 3: Edit configuration (customize for your environment)
+vim installer-config.json
+
+# Step 4: Synchronize artifacts
+./e2e-k8s-installer package-pull --config installer-config.json
+
+# Future steps (coming soon):
+# Step 5: ./e2e-k8s-installer provision-infra --config installer-config.json  
+# Step 6: ./e2e-k8s-installer deploy --config installer-config.json
+# Step 7: ./e2e-k8s-installer post-validate --config installer-config.json
+```
+
+### Global Flags
+
+Available across all commands:
+
+```bash
+--config string        # Config file (default: $HOME/.e2e-k8s-installer.yaml)
+--config-path string   # Path to configuration directory  
+--dry-run              # Show what would be done without executing
+--verbose, -v          # Enable verbose output
+--help, -h             # Show help information
 ```
 
 ## � Project Structure
@@ -658,12 +923,46 @@ e2e-k8s-installer/
 
 ## 🔒 Security Features
 
-### Security Framework
+### Current Security Implementation
 
-The installer implements a comprehensive security framework:
+The installer currently implements enterprise-grade security patterns:
 
-#### RBAC (Role-Based Access Control)
+#### **Input Validation & Configuration Security** ✅
+
+```json
+{
+  "installer": {
+    "logLevel": "info",        // Validated enum: debug, info, warn, error
+    "workspace": "./workspace", // Path validation and sanitization
+    "dryRun": false            // Boolean validation
+  },
+  "artifacts": {
+    "images": {
+      "vendor": {
+        "registry": "https://vendor-registry.io", // URL validation
+        "auth": {
+          "token": "***"                          // Secure credential handling
+        }
+      }
+    }
+  }
+}
+```
+
+**Current Security Features:**
+- **Configuration Validation**: Comprehensive input validation using go-playground/validator
+- **Credential Security**: Secure handling of registry credentials and tokens
+- **Path Sanitization**: Safe file system operations with proper path validation
+- **Network Security**: TLS-enabled communications with all external registries
+- **Audit Logging**: Complete audit trail using structured logging (zerolog)
+
+#### **Planned Security Framework** 🔄
+
+The following security features are planned for future releases:
+
+##### RBAC (Role-Based Access Control)
 ```yaml
+# Future implementation
 security:
   rbac:
     enabled: true
@@ -675,8 +974,9 @@ security:
             verbs: ["get", "list", "create", "update"]
 ```
 
-#### Network Policies
+##### Network Policies
 ```yaml
+# Future implementation
 security:
   network_policies:
     enabled: true
@@ -688,45 +988,115 @@ security:
           policyTypes: ["Ingress"]
 ```
 
-#### Security Scanning
-- **Container Scanning**: Trivy integration for vulnerability detection
-- **Runtime Security**: Falco for runtime threat detection  
-- **Policy Enforcement**: OPA Gatekeeper for admission control
-- **Compliance**: CIS Kubernetes Benchmark validation
+##### Security Scanning
+- **Container Scanning**: Trivy integration for vulnerability detection (planned)
+- **Runtime Security**: Falco for runtime threat detection (planned)
+- **Policy Enforcement**: OPA Gatekeeper for admission control (planned)
+- **Compliance**: CIS Kubernetes Benchmark validation (planned)
 
-### Security Best Practices
+### Current Security Best Practices
 
-1. **Least Privilege**: Minimal required permissions
-2. **Network Segmentation**: Default deny network policies
-3. **Image Security**: Signed and scanned container images
-4. **Secret Management**: Encrypted secret storage
-5. **Audit Logging**: Comprehensive audit trail
+1. **Secure Configuration**: JSON-based configuration with comprehensive validation
+2. **Credential Management**: Secure token and password handling
+3. **Network Security**: TLS-only communications with external services
+4. **Audit Logging**: Structured logging with audit trail capabilities
+5. **Input Sanitization**: All user inputs validated and sanitized
+
+### Security Roadmap
+
+| Feature | Current Status | Planned Release |
+|---------|----------------|-----------------|
+| Input Validation | ✅ Implemented | Current |
+| Credential Security | ✅ Implemented | Current |
+| Network Security | ✅ Implemented | Current |
+| Audit Logging | ✅ Implemented | Current |
+| RBAC Integration | 🔄 Planned | v2.0 |
+| Network Policies | 🔄 Planned | v2.0 |
+| Security Scanning | 🔄 Planned | v2.1 |
+| Compliance Checks | 🔄 Planned | v2.1 |
 
 ## 📊 Monitoring & Observability
 
-### Monitoring Stack Components
+### Current Monitoring Implementation
+
+The installer currently provides comprehensive logging and progress tracking:
+
+#### **Built-in Monitoring Features** ✅
+
+```bash
+# Structured Logging (Current Implementation)
+./e2e-k8s-installer package-pull --config config.json --verbose
+
+# Sample log output (JSON structured):
+{
+  "level": "info",
+  "time": "2024-01-20T10:30:15Z",
+  "message": "Starting OCI image synchronization",
+  "component": "package-pull",
+  "source_registry": "vendor-registry.io",
+  "target_registry": "client-registry.io"
+}
+```
+
+**Current Capabilities:**
+- **Structured Logging**: High-performance JSON logging with zerolog
+- **Progress Tracking**: Beautiful progress bars and real-time status with pterm  
+- **Command Auditing**: Complete audit trail of all operations
+- **Error Tracking**: Detailed error reporting with context
+- **Performance Metrics**: Command execution timing and resource usage
+
+#### **Log Levels & Configuration**
+
+```json
+{
+  "installer": {
+    "logLevel": "info",     // debug, info, warn, error
+    "logFormat": "json",    // json, text
+    "verbose": true         // Enhanced output
+  }
+}
+```
+
+### Planned Monitoring Stack 🔄
+
+The following monitoring components are planned for future Kubernetes deployments:
 
 #### Prometheus Stack
-- **Prometheus Server**: Metrics collection and storage
-- **Alertmanager**: Alert routing and management
-- **Node Exporter**: System metrics collection
-- **kube-state-metrics**: Kubernetes object metrics
+- **Prometheus Server**: Metrics collection and storage (planned)
+- **Alertmanager**: Alert routing and management (planned)
+- **Node Exporter**: System metrics collection (planned)
+- **kube-state-metrics**: Kubernetes object metrics (planned)
 
 #### Grafana Dashboards
-- **Cluster Overview**: High-level cluster health
-- **Node Metrics**: System resource utilization
-- **Pod Metrics**: Application performance
-- **Security Dashboard**: Security event monitoring
+- **Cluster Overview**: High-level cluster health (planned)
+- **Node Metrics**: System resource utilization (planned)
+- **Pod Metrics**: Application performance (planned)
+- **Security Dashboard**: Security event monitoring (planned)
 
 #### Logging Infrastructure
-- **Elasticsearch**: Log storage and indexing
-- **Logstash**: Log processing and enrichment
-- **Kibana**: Log visualization and analysis
-- **Fluentd**: Log collection and forwarding
+- **Elasticsearch**: Log storage and indexing (planned)
+- **Logstash**: Log processing and enrichment (planned)
+- **Kibana**: Log visualization and analysis (planned)
+- **Fluentd**: Log collection and forwarding (planned)
 
-### Custom Monitoring Configuration
+### Current vs Planned Features
+
+| Feature | Current Status | Description |
+|---------|----------------|-------------|
+| **CLI Logging** | ✅ Implemented | Structured JSON/text logging with zerolog |
+| **Progress UI** | ✅ Implemented | Real-time progress bars with pterm |
+| **Command Auditing** | ✅ Implemented | Complete audit trail of operations |
+| **Error Reporting** | ✅ Implemented | Detailed error context and stack traces |
+| **Performance Tracking** | ✅ Implemented | Command timing and resource usage |
+| **Prometheus Integration** | 🔄 Planned | Cluster metrics collection |
+| **Grafana Dashboards** | 🔄 Planned | Visual monitoring interface |
+| **ELK Stack** | 🔄 Planned | Centralized log management |
+| **Alerting** | 🔄 Planned | Automated alert notifications |
+
+### Custom Monitoring Configuration (Future)
 
 ```yaml
+# Planned monitoring configuration
 monitoring:
   prometheus:
     enabled: true
@@ -819,69 +1189,170 @@ cloud:
 
 ## 🔧 Troubleshooting & Support
 
-### Debug Mode
+### Current Command Debugging
+
+#### Debug Mode for Current Commands
 
 ```bash
-# Enable verbose logging
-k8s-installer install --config config.yaml --debug --verbose
+# Enable verbose logging for set-up command
+./e2e-k8s-installer set-up --workspace ./test --verbose
 
-# Save logs to file
-k8s-installer install --config config.yaml --log-file install.log
+# Enable verbose logging for package-pull command  
+./e2e-k8s-installer package-pull --config config.json --verbose
 
-# Dry run mode
-k8s-installer install --config config.yaml --dry-run
+# Dry run mode (see what would be done without executing)
+./e2e-k8s-installer set-up --workspace ./test --dry-run
+./e2e-k8s-installer package-pull --config config.json --dry-run
+
+# Check command help
+./e2e-k8s-installer set-up --help
+./e2e-k8s-installer package-pull --help
 ```
 
-### Common Issues & Solutions
+### Common Issues & Solutions (Current Implementation)
+
+#### Issue: set-up Command Prerequisites Failed
+
+```bash
+# Check if required tools are installed
+which kubectl
+which helm  
+which terraform
+
+# Install missing prerequisites:
+# kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
+
+# helm
+brew install helm
+
+# terraform  
+brew install terraform
+```
+
+**Solution**: Ensure kubectl, helm, and terraform are installed and available in PATH.
+
+#### Issue: package-pull Registry Authentication Failures
+
+```bash
+# Test registry connectivity
+curl -v https://your-registry.io/v2/
+
+# Verify authentication credentials in config
+cat installer-config.json | grep -A5 "auth"
+
+# Test Docker login (if using Docker-compatible registry)
+echo "your-password" | docker login your-registry.io -u your-username --password-stdin
+```
+
+**Solution**: Verify registry URLs, credentials, and network connectivity.
+
+#### Issue: Configuration File Validation Errors
+
+```bash
+# Validate JSON syntax
+jq . installer-config.json
+
+# Check for required fields
+./e2e-k8s-installer package-pull --config installer-config.json --dry-run
+```
+
+**Common validation errors:**
+- Invalid JSON syntax
+- Missing required fields (`installer.workspace`, `artifacts.images.vendor.registry`)
+- Invalid URL formats in registry configurations
+- Missing authentication credentials
+
+#### Issue: Workspace Permission Problems
+
+```bash
+# Check workspace directory permissions
+ls -la ./workspace-directory/
+
+# Fix permissions if needed
+chmod 755 ./workspace-directory/
+chown $USER:$USER ./workspace-directory/
+```
+
+**Solution**: Ensure the installer has read/write permissions to the workspace directory.
+
+#### Issue: Git Repository Access Problems
+
+```bash
+# Test Git repository access
+git clone https://github.com/vendor/helm-charts.git
+
+# Check SSH key setup (for SSH URLs)
+ssh -T git@github.com
+
+# Verify Git credentials
+git config --list | grep user
+```
+
+**Solution**: Ensure Git credentials are properly configured for repository access.
+
+### Planned Troubleshooting Features 🔄
+
+Future releases will include:
 
 #### Issue: Cloud Authentication Failures
 ```bash
-# AWS
+# AWS (planned)
 aws configure list
 aws sts get-caller-identity
 
-# Azure  
+# Azure (planned)
 az account show
 az ad signed-in-user show
 
-# GCP
+# GCP (planned)
 gcloud auth list
 gcloud config list
 ```
 
 #### Issue: Network Connectivity Problems
 ```bash
-# Test connectivity
+# Test connectivity (planned)
 k8s-installer validate network
 
-# Check DNS resolution
+# Check DNS resolution (planned)
 nslookup kubernetes.default.svc.cluster.local
 
-# Verify firewall rules
+# Verify firewall rules (planned)
 kubectl get networkpolicies --all-namespaces
 ```
 
 #### Issue: Resource Quota Exceeded
 ```bash
-# Check resource usage
+# Check resource usage (planned)
 kubectl describe nodes
 kubectl top nodes
 kubectl top pods --all-namespaces
 
-# Check quotas
+# Check quotas (planned)
 kubectl describe quota --all-namespaces
 ```
 
-### Support Bundle Collection
+### Support Bundle Collection (Planned)
 
 ```bash
-# Generate comprehensive support bundle
-k8s-installer support-bundle \
+# Generate comprehensive support bundle (planned)
+e2e-k8s-installer support-bundle \
   --output support-$(date +%Y%m%d-%H%M%S).tar.gz \
   --include-logs \
   --include-config \
   --include-cluster-info
 ```
+
+### Getting Help
+
+For current implementation issues:
+
+1. **Check Command Help**: Use `--help` flag for any command
+2. **Enable Verbose Logging**: Use `--verbose` flag for detailed output
+3. **Use Dry Run**: Test with `--dry-run` before actual execution
+4. **Validate Configuration**: Ensure JSON syntax and required fields
+5. **Check Prerequisites**: Verify kubectl, helm, terraform installation
 
 ## 🧪 Testing & Validation
 
@@ -977,7 +1448,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 - 🐛 **Issues**: [GitHub Issues](https://github.com/judebantony/e2e-k8s-installer/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/judebantony/e2e-k8s-installer/discussions)
-- 📧 **Email**: support@k8s-installer.io
+- 📧 **Email**: [support@k8s-installer.io](mailto:support@k8s-installer.io)
 - 📖 **Documentation**: [docs/](docs/)
 - 🌟 **Roadmap**: [ROADMAP.md](ROADMAP.md)
 
