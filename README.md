@@ -158,32 +158,32 @@ graph LR
         A5[deploy]
         A6[post-validate]
         A7[e2e-test]
-        A8[install (orchestrator)]
+        A8[install or orchestrator]
     end
 
     subgraph Core["⚙️ Core Framework"]
-        B1[Config Loader<br/>(JSON Schema, Validator)]
-        B2[Logger & ProgressBar<br/>(JSONL, pterm)]
-        B3[Report Generator<br/>(per-step summaries)]
-        B4[Error & Retry Handler<br/>(Idempotent logic)]
+        B1[Config Loader - JSON Schema, Validator]
+        B2[Logger & ProgressBar - JSONL, pterm]
+        B3[Report Generator - per-step summaries]
+        B4[Error & Retry Handler - Idempotent logic]
     end
 
     subgraph Integration["🔗 Integration Modules"]
-        C1[OCI Manager<br/>Pull/Push/Scan Images]
-        C2[Git Manager<br/>Checkout/Mirror Repos]
-        C3[Terraform Runner<br/>Infra Provisioning]
-        C4[Helm Deployer<br/>Charts & Values]
-        C5[K8s Client<br/>Health Checks & Jobs]
-        C6[DB Migration<br/>Flyway/Liquibase]
+        C1[OCI Manager - Pull/Push/Scan Images]
+        C2[Git Manager - Checkout/Mirror Repos]
+        C3[Terraform Runner - Infra Provisioning]
+        C4[Helm Deployer - Charts & Values]
+        C5[K8s Client - Health Checks & Jobs]
+        C6[DB Migration - Flyway/Liquibase]
     end
 
     subgraph External["🌐 External Systems"]
-        D1[Vendor OCI Registries<br/>(GitHub, DockerHub, Azure)]
-        D2[Client Private Registries<br/>(Harbor, Artifactory)]
-        D3[Vendor GitHub Repos<br/>(Helm, Terraform, DB)]
-        D4[Client GitHub Repos<br/>Mirrors]
-        D5[Cloud Providers<br/>(AWS, Azure, GCP)]
-        D6[Kubernetes Cluster<br/>(OpenShift, Rancher, etc.)]
+        D1[Vendor OCI Registries - GitHub, DockerHub, Azure]
+        D2[Client Private Registries - Harbor, Artifactory]
+        D3[Vendor GitHub Repos - Helm, Terraform, DB]
+        D4[Client GitHub Repos - Mirrors]
+        D5[Cloud Providers - AWS, Azure, GCP]
+        D6[Kubernetes Cluster - OpenShift, Rancher, etc.]
     end
 
     %% connections
@@ -215,9 +215,10 @@ graph LR
     B1 --> B2
     B2 --> B3
     B3 --> B4
+
 ```
 
-## Prerequisite & Dependency Flow
+## 🧱 Prerequisite & Dependency Flow
 
 ```mermaid
 sequenceDiagram
