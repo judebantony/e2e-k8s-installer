@@ -262,13 +262,13 @@ func (m *Manager) GetMakefileInfo() *MakefileInfo {
 
 // MakefileInfo contains information about the Makefile configuration
 type MakefileInfo struct {
-	MakefilePath     string                    `json:"makefilePath"`
-	WorkingDirectory string                    `json:"workingDirectory"`
-	Targets          config.MakefileTargets    `json:"targets"`
-	Environment      map[string]string         `json:"environment"`
-	Variables        map[string]string         `json:"variables"`
-	Parallel         bool                      `json:"parallel"`
-	KeepGoing        bool                      `json:"keepGoing"`
-	DryRun           bool                      `json:"dryRun"`
-	Timeout          string                    `json:"timeout"`
+	MakefilePath     string                 `json:"makefilePath"`
+	WorkingDirectory string                 `json:"workingDirectory"`
+	Targets          config.MakefileTargets `json:"targets"`
+	Environment      map[string]string      `json:"environment"`
+	Variables        map[string]string      `json:"variables"`
+	Parallel         bool                   `json:"parallel"`
+	KeepGoing        bool                   `json:"keepGoing"`
+	DryRun           bool                   `json:"dryRun"`
+	Timeout          string                 `json:"timeout"`
 }

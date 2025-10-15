@@ -11,10 +11,10 @@ import (
 
 // Manager handles infrastructure provisioning operations
 type Manager struct {
-	config          *config.InfrastructureConfig
-	terraformMgr    *terraform.Manager
-	makefileMgr     *makefile.Manager
-	provisionMode   string
+	config        *config.InfrastructureConfig
+	terraformMgr  *terraform.Manager
+	makefileMgr   *makefile.Manager
+	provisionMode string
 }
 
 // ProvisionMode constants
@@ -71,7 +71,7 @@ func NewManager(infraConfig *config.InfrastructureConfig) (*Manager, error) {
 			}
 			mgr.terraformMgr = tfMgr
 		}
-		
+
 		if infraConfig.Makefile.Enabled {
 			makeMgr, err := makefile.NewManager(&infraConfig.Makefile)
 			if err != nil {
@@ -289,13 +289,13 @@ func (m *Manager) initHybrid(dryRun bool) error {
 			return fmt.Errorf("makefile init failed: %w", err)
 		}
 	}
-	
+
 	if m.terraformMgr != nil {
 		if err := m.initTerraform(dryRun); err != nil {
 			return fmt.Errorf("terraform init failed: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -306,13 +306,13 @@ func (m *Manager) planHybrid(dryRun bool) error {
 			return fmt.Errorf("makefile plan failed: %w", err)
 		}
 	}
-	
+
 	if m.terraformMgr != nil {
 		if err := m.planTerraform(dryRun); err != nil {
 			return fmt.Errorf("terraform plan failed: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -323,36 +323,36 @@ func (m *Manager) applyHybrid(dryRun bool) error {
 			return fmt.Errorf("makefile apply failed: %w", err)
 		}
 	}
-	
+
 	if m.terraformMgr != nil {
 		if err := m.applyTerraform(dryRun); err != nil {
 			return fmt.Errorf("terraform apply failed: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
 func (m *Manager) destroyHybrid(dryRun bool) error {
 	// Execute terraform destroy first, then makefile
 	var errs []error
-	
+
 	if m.terraformMgr != nil {
 		if err := m.destroyTerraform(dryRun); err != nil {
 			errs = append(errs, fmt.Errorf("terraform destroy failed: %w", err))
 		}
 	}
-	
+
 	if m.makefileMgr != nil {
 		if err := m.destroyMakefile(dryRun); err != nil {
 			errs = append(errs, fmt.Errorf("makefile destroy failed: %w", err))
 		}
 	}
-	
+
 	if len(errs) > 0 {
 		return fmt.Errorf("hybrid destroy failed with %d errors: %v", len(errs), errs)
 	}
-	
+
 	return nil
 }
 
@@ -363,13 +363,13 @@ func (m *Manager) validateHybrid(dryRun bool) error {
 			return fmt.Errorf("makefile validation failed: %w", err)
 		}
 	}
-	
+
 	if m.terraformMgr != nil {
 		if err := m.validateTerraform(dryRun); err != nil {
 			return fmt.Errorf("terraform validation failed: %w", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -435,9 +435,9 @@ func (m *Manager) RunHealthChecks() error {
 
 // ManagerInfo contains information about the infrastructure manager
 type ManagerInfo struct {
-	ProvisionMode     string                    `json:"provisionMode"`
-	TerraformEnabled  bool                      `json:"terraformEnabled"`
-	MakefileEnabled   bool                      `json:"makefileEnabled"`
-	HealthCheckConfig config.HealthCheckConfig  `json:"healthCheckConfig"`
-	MakefileInfo      *makefile.MakefileInfo    `json:"makefileInfo,omitempty"`
+	ProvisionMode     string                   `json:"provisionMode"`
+	TerraformEnabled  bool                     `json:"terraformEnabled"`
+	MakefileEnabled   bool                     `json:"makefileEnabled"`
+	HealthCheckConfig config.HealthCheckConfig `json:"healthCheckConfig"`
+	MakefileInfo      *makefile.MakefileInfo   `json:"makefileInfo,omitempty"`
 }

@@ -46,12 +46,12 @@ type ImageConfig struct {
 
 // RegistryConfig contains registry authentication and settings
 type RegistryConfig struct {
-	Registry       string    `json:"registry" validate:"required,url"`
-	URL            string    `json:"url" validate:"omitempty,url"` // Alias for Registry for backward compatibility
+	Registry       string     `json:"registry" validate:"required,url"`
+	URL            string     `json:"url" validate:"omitempty,url"` // Alias for Registry for backward compatibility
 	Auth           AuthConfig `json:"auth"`
-	EnablePipeline bool      `json:"enablePipeline"`
-	Insecure       bool      `json:"insecure"`
-	Timeout        string    `json:"timeout" validate:"duration"`
+	EnablePipeline bool       `json:"enablePipeline"`
+	Insecure       bool       `json:"insecure"`
+	Timeout        string     `json:"timeout" validate:"duration"`
 }
 
 // AuthConfig supports multiple authentication methods
@@ -87,21 +87,21 @@ type TerraformConfig struct {
 
 // GitRepoConfig contains Git repository configuration
 type GitRepoConfig struct {
-	Repo       string    `json:"repo" validate:"required,url"`
-	Branch     string    `json:"branch"`
-	Tag        string    `json:"tag"`
+	Repo       string     `json:"repo" validate:"required,url"`
+	Branch     string     `json:"branch"`
+	Tag        string     `json:"tag"`
 	Auth       AuthConfig `json:"auth"`
-	PushToRepo bool      `json:"pushToRepo"`
-	LocalPath  string    `json:"localPath,omitempty"`
+	PushToRepo bool       `json:"pushToRepo"`
+	LocalPath  string     `json:"localPath,omitempty"`
 }
 
 // HelmChart defines a Helm chart configuration
 type HelmChart struct {
-	Name      string            `json:"name" validate:"required"`
-	Path      string            `json:"path" validate:"required"`
-	Version   string            `json:"version"`
-	Values    map[string]interface{} `json:"values,omitempty"`
-	Override  string            `json:"override,omitempty" validate:"omitempty,file"`
+	Name     string                 `json:"name" validate:"required"`
+	Path     string                 `json:"path" validate:"required"`
+	Version  string                 `json:"version"`
+	Values   map[string]interface{} `json:"values,omitempty"`
+	Override string                 `json:"override,omitempty" validate:"omitempty,file"`
 }
 
 // TerraformModule defines a Terraform module configuration
@@ -150,14 +150,14 @@ type MakefileExecution struct {
 
 // MakefileTargets defines the targets for different operations
 type MakefileTargets struct {
-	Init        string `json:"init"`
-	Plan        string `json:"plan"`
-	Apply       string `json:"apply"`
-	Destroy     string `json:"destroy"`
-	Validate    string `json:"validate"`
-	Clean       string `json:"clean"`
-	Format      string `json:"format"`
-	HealthCheck string `json:"healthCheck"`
+	Init        string            `json:"init"`
+	Plan        string            `json:"plan"`
+	Apply       string            `json:"apply"`
+	Destroy     string            `json:"destroy"`
+	Validate    string            `json:"validate"`
+	Clean       string            `json:"clean"`
+	Format      string            `json:"format"`
+	HealthCheck string            `json:"healthCheck"`
 	Custom      map[string]string `json:"custom,omitempty"`
 }
 
@@ -235,33 +235,33 @@ type K8sConfig struct {
 	ConfigPath  string `json:"configPath" validate:"omitempty,file"`
 	Timeout     string `json:"timeout" validate:"duration"`
 	WaitTimeout string `json:"waitTimeout" validate:"duration"`
-	
+
 	// RBAC configuration
 	RBAC struct {
-		Enabled     bool     `json:"enabled"`
-		Roles       []string `json:"roles"`
-		Bindings    []string `json:"bindings"`
+		Enabled  bool     `json:"enabled"`
+		Roles    []string `json:"roles"`
+		Bindings []string `json:"bindings"`
 	} `json:"rbac"`
-	
+
 	// Ingress configuration
 	Ingress struct {
-		Enabled     bool   `json:"enabled"`
-		Controller  string `json:"controller"`
-		Namespace   string `json:"namespace"`
-		Class       string `json:"class"`
+		Enabled    bool   `json:"enabled"`
+		Controller string `json:"controller"`
+		Namespace  string `json:"namespace"`
+		Class      string `json:"class"`
 	} `json:"ingress"`
-	
+
 	// Networking configuration
 	Networking struct {
-		CNI     string `json:"cni"`
-		CIDR    string `json:"cidr"`
-		Config  map[string]interface{} `json:"config"`
+		CNI    string                 `json:"cni"`
+		CIDR   string                 `json:"cidr"`
+		Config map[string]interface{} `json:"config"`
 	} `json:"networking"`
-	
+
 	// Storage configuration
 	Storage struct {
-		Class       string `json:"class"`
-		Provisioner string `json:"provisioner"`
+		Class       string                 `json:"class"`
+		Provisioner string                 `json:"provisioner"`
 		Config      map[string]interface{} `json:"config"`
 	} `json:"storage"`
 }
@@ -342,32 +342,32 @@ type ReportConfig struct {
 
 // SecurityConfig defines security configuration
 type SecurityConfig struct {
-	ScanImages        bool     `json:"scanImages"`
-	PolicyFiles       []string `json:"policyFiles"`
-	AllowedRegistries []string `json:"allowedRegistries"`
+	ScanImages        bool              `json:"scanImages"`
+	PolicyFiles       []string          `json:"policyFiles"`
+	AllowedRegistries []string          `json:"allowedRegistries"`
 	RequiredLabels    map[string]string `json:"requiredLabels"`
-	
+
 	// Scanning configuration
 	Scanning struct {
-		Enabled   bool     `json:"enabled"`
-		Tools     []string `json:"tools"`
+		Enabled    bool     `json:"enabled"`
+		Tools      []string `json:"tools"`
 		Registries []string `json:"registries"`
 	} `json:"scanning"`
-	
+
 	// Authentication configuration
 	Authentication struct {
-		Enabled bool   `json:"enabled"`
-		Method  string `json:"method"`
+		Enabled bool                   `json:"enabled"`
+		Method  string                 `json:"method"`
 		Config  map[string]interface{} `json:"config"`
 	} `json:"authentication"`
-	
+
 	// Encryption configuration
 	Encryption struct {
 		Enabled bool   `json:"enabled"`
 		Method  string `json:"method"`
 		KeyPath string `json:"keyPath"`
 	} `json:"encryption"`
-	
+
 	// Security policies
 	Policies struct {
 		Enabled bool     `json:"enabled"`
@@ -377,9 +377,9 @@ type SecurityConfig struct {
 
 // MonitoringConfig defines monitoring configuration
 type MonitoringConfig struct {
-	Enabled    bool   `json:"enabled"`
-	Namespace  string `json:"namespace"`
-	
+	Enabled   bool   `json:"enabled"`
+	Namespace string `json:"namespace"`
+
 	// Prometheus configuration
 	Prometheus struct {
 		Enabled   bool   `json:"enabled"`
@@ -387,7 +387,7 @@ type MonitoringConfig struct {
 		Namespace string `json:"namespace"`
 		Version   string `json:"version"`
 	} `json:"prometheus"`
-	
+
 	// Grafana configuration
 	Grafana struct {
 		Enabled   bool   `json:"enabled"`
@@ -395,7 +395,7 @@ type MonitoringConfig struct {
 		Namespace string `json:"namespace"`
 		Version   string `json:"version"`
 	} `json:"grafana"`
-	
+
 	// ELK Stack configuration
 	ELK struct {
 		Enabled       bool   `json:"enabled"`
@@ -403,7 +403,7 @@ type MonitoringConfig struct {
 		Logstash      string `json:"logstash"`
 		Kibana        string `json:"kibana"`
 	} `json:"elk"`
-	
+
 	// Alerting configuration
 	Alerting struct {
 		Enabled bool     `json:"enabled"`
@@ -415,7 +415,7 @@ type MonitoringConfig struct {
 type CloudConfig struct {
 	Provider string `json:"provider" validate:"required,oneof=aws azure gcp"`
 	Region   string `json:"region" validate:"required"`
-	
+
 	// AWS specific
 	AWS struct {
 		AccessKeyID     string `json:"accessKeyId"`
@@ -423,7 +423,7 @@ type CloudConfig struct {
 		SessionToken    string `json:"sessionToken"`
 		Profile         string `json:"profile"`
 	} `json:"aws,omitempty"`
-	
+
 	// Azure specific
 	Azure struct {
 		TenantID       string `json:"tenantId"`
@@ -431,10 +431,10 @@ type CloudConfig struct {
 		ClientSecret   string `json:"clientSecret"`
 		SubscriptionID string `json:"subscriptionId"`
 	} `json:"azure,omitempty"`
-	
+
 	// GCP specific
 	GCP struct {
-		ProjectID   string `json:"projectId"`
+		ProjectID         string `json:"projectId"`
 		ServiceAccountKey string `json:"serviceAccountKey"`
 	} `json:"gcp,omitempty"`
 }
@@ -472,8 +472,6 @@ type StepState struct {
 	Output    string     `json:"output,omitempty"`
 	Retries   int        `json:"retries"`
 }
-
-
 
 // ToJSON converts the config to JSON string
 func (c *InstallerConfig) ToJSON() (string, error) {

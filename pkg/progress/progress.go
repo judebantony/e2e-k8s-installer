@@ -9,9 +9,9 @@ import (
 
 // ProgressManager manages multiple progress indicators
 type ProgressManager struct {
-	spinners    map[string]*pterm.SpinnerPrinter
+	spinners     map[string]*pterm.SpinnerPrinter
 	progressBars map[string]*pterm.ProgressbarPrinter
-	areas       map[string]*pterm.AreaPrinter
+	areas        map[string]*pterm.AreaPrinter
 }
 
 // NewProgressManager creates a new progress manager
@@ -151,7 +151,7 @@ func GetProgressManager() *ProgressManager {
 // ShowStepProgress shows a step-based progress indicator
 func ShowStepProgress(steps []string, currentStep int) {
 	pm := GetProgressManager()
-	
+
 	// Create a progress display
 	content := "\n"
 	for i, step := range steps {
@@ -167,23 +167,23 @@ func ShowStepProgress(steps []string, currentStep int) {
 			symbol = "⏳"
 			color = pterm.FgLightWhite
 		}
-		
-		content += fmt.Sprintf("  %s %s %s\n", 
-			symbol, 
+
+		content += fmt.Sprintf("  %s %s %s\n",
+			symbol,
 			pterm.NewStyle(pterm.FgLightWhite).Sprintf("%d.", i+1),
 			pterm.NewStyle(color).Sprintf("%s", step))
 	}
 	content += "\n"
-	
+
 	pm.UpdateArea("steps", content)
 }
 
 // ShowImagePullProgress shows progress for pulling multiple images
 func ShowImagePullProgress(images []string, completed []bool) {
 	pm := GetProgressManager()
-	
+
 	content := pterm.DefaultHeader.Sprint("📦 Image Pull Progress") + "\n\n"
-	
+
 	completedCount := 0
 	for i, image := range images {
 		var symbol string
@@ -196,26 +196,26 @@ func ShowImagePullProgress(images []string, completed []bool) {
 			symbol = "⏳"
 			color = pterm.FgYellow
 		}
-		
-		content += fmt.Sprintf("  %s %s\n", 
-			symbol, 
+
+		content += fmt.Sprintf("  %s %s\n",
+			symbol,
 			pterm.NewStyle(color).Sprintf("%s", image))
 	}
-	
+
 	// Add summary
 	progress := float64(completedCount) / float64(len(images)) * 100
-	content += fmt.Sprintf("\n📊 Progress: %d/%d (%.1f%%)\n", 
+	content += fmt.Sprintf("\n📊 Progress: %d/%d (%.1f%%)\n",
 		completedCount, len(images), progress)
-	
+
 	pm.UpdateArea("images", content)
 }
 
 // ShowHealthCheckProgress shows health check progress
 func ShowHealthCheckProgress(checks map[string]string) {
 	pm := GetProgressManager()
-	
+
 	content := pterm.DefaultHeader.Sprint("🏥 Health Check Status") + "\n\n"
-	
+
 	for service, status := range checks {
 		var symbol string
 		var color pterm.Color
@@ -233,22 +233,22 @@ func ShowHealthCheckProgress(checks map[string]string) {
 			symbol = "⏳"
 			color = pterm.FgLightWhite
 		}
-		
-		content += fmt.Sprintf("  %s %s: %s\n", 
-			symbol, 
+
+		content += fmt.Sprintf("  %s %s: %s\n",
+			symbol,
 			pterm.NewStyle(pterm.FgLightWhite).Sprintf("%s", service),
 			pterm.NewStyle(color).Sprintf("%s", status))
 	}
-	
+
 	pm.UpdateArea("health", content)
 }
 
 // ShowTerraformProgress shows Terraform execution progress
 func ShowTerraformProgress(modules []string, status map[string]string) {
 	pm := GetProgressManager()
-	
+
 	content := pterm.DefaultHeader.Sprint("🏗️ Infrastructure Progress") + "\n\n"
-	
+
 	for _, module := range modules {
 		moduleStatus := status[module]
 		var symbol string
@@ -267,22 +267,22 @@ func ShowTerraformProgress(modules []string, status map[string]string) {
 			symbol = "⏳"
 			color = pterm.FgLightWhite
 		}
-		
-		content += fmt.Sprintf("  %s %s: %s\n", 
-			symbol, 
+
+		content += fmt.Sprintf("  %s %s: %s\n",
+			symbol,
 			pterm.NewStyle(pterm.FgLightWhite).Sprintf("%s", module),
 			pterm.NewStyle(color).Sprintf("%s", moduleStatus))
 	}
-	
+
 	pm.UpdateArea("terraform", content)
 }
 
 // ShowTestProgress shows test execution progress
 func ShowTestProgress(testSuites []string, results map[string]TestResult) {
 	pm := GetProgressManager()
-	
+
 	content := pterm.DefaultHeader.Sprint("🧪 Test Execution Progress") + "\n\n"
-	
+
 	for _, suite := range testSuites {
 		result := results[suite]
 		var symbol string
@@ -301,18 +301,18 @@ func ShowTestProgress(testSuites []string, results map[string]TestResult) {
 			symbol = "⏳"
 			color = pterm.FgLightWhite
 		}
-		
+
 		statusText := result.Status
 		if result.Total > 0 {
 			statusText = fmt.Sprintf("%s (%d/%d)", result.Status, result.Passed, result.Total)
 		}
-		
-		content += fmt.Sprintf("  %s %s: %s\n", 
-			symbol, 
+
+		content += fmt.Sprintf("  %s %s: %s\n",
+			symbol,
 			pterm.NewStyle(pterm.FgLightWhite).Sprintf("%s", suite),
 			pterm.NewStyle(color).Sprintf("%s", statusText))
 	}
-	
+
 	pm.UpdateArea("tests", content)
 }
 
@@ -347,21 +347,21 @@ func ShowBanner(version string) {
 		pterm.NewLettersFromStringWithStyle("K8s", pterm.NewStyle(pterm.FgCyan)),
 		pterm.NewLettersFromStringWithStyle("Installer", pterm.NewStyle(pterm.FgLightMagenta))).
 		Srender()
-	
+
 	pterm.DefaultCenter.Println(banner)
 	pterm.DefaultCenter.WithCenterEachLineSeparately().Println(
 		pterm.LightMagenta("Enterprise Kubernetes Installation Tool\n") +
-		pterm.Gray("Version: " + version))
+			pterm.Gray("Version: "+version))
 	pterm.Println()
 }
 
 // ShowSummary displays installation summary
 func ShowSummary(steps []string, results map[string]string, duration time.Duration) {
 	pterm.DefaultSection.Println("Installation Summary")
-	
+
 	successCount := 0
 	failedCount := 0
-	
+
 	for _, step := range steps {
 		result := results[step]
 		var symbol string
@@ -382,24 +382,24 @@ func ShowSummary(steps []string, results map[string]string, duration time.Durati
 			symbol = "❓"
 			color = pterm.FgLightWhite
 		}
-		
-		pterm.Printf("  %s %s: %s\n", 
+
+		pterm.Printf("  %s %s: %s\n",
 			symbol,
 			step,
 			pterm.NewStyle(color).Sprintf("%s", result))
 	}
-	
+
 	pterm.Println()
-	
+
 	// Summary statistics
 	totalSteps := len(steps)
 	pterm.Printf("📊 Results: %s successful, %s failed, %s total\n",
 		pterm.Green(fmt.Sprintf("%d", successCount)),
 		pterm.Red(fmt.Sprintf("%d", failedCount)),
 		pterm.LightWhite(fmt.Sprintf("%d", totalSteps)))
-	
+
 	pterm.Printf("⏱️ Total Duration: %s\n", pterm.Cyan(duration.String()))
-	
+
 	if failedCount == 0 {
 		pterm.Success.Println("🎉 Installation completed successfully!")
 	} else {

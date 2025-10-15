@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/rs/zerolog"
-	"github.com/pterm/pterm"
 	"github.com/judebantony/e2e-k8s-installer/pkg/config"
+	"github.com/pterm/pterm"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -87,7 +87,7 @@ func runPostValidate(cmd *cobra.Command, args []string) error {
 
 	// Create spinner for initialization
 	spinner, _ := pterm.DefaultSpinner.Start("Initializing post-deployment validation...")
-	
+
 	ctx := context.Background()
 	startTime := time.Now()
 
@@ -112,7 +112,7 @@ func runPostValidate(cmd *cobra.Command, args []string) error {
 
 	// Create progress area
 	progressArea, _ := pterm.DefaultArea.Start()
-	
+
 	// Execute validation steps
 	steps := []ValidationStep{
 		{
@@ -180,10 +180,10 @@ func runPostValidate(cmd *cobra.Command, args []string) error {
 	// Success summary
 	duration := time.Since(startTime)
 	pterm.Success.Printf("🎉 Post-validation completed successfully in %v\n", duration.Round(time.Second))
-	
+
 	// Display summary information
 	pterm.DefaultSection.Println("Validation Summary")
-	
+
 	results := manager.GetValidationResults()
 	info := [][]string{
 		{"Namespace", manager.GetNamespace()},
@@ -206,7 +206,7 @@ func runPostValidate(cmd *cobra.Command, args []string) error {
 	// Display detailed results if there are failures
 	if results.FailedChecks > 0 {
 		pterm.DefaultSection.Println("Failed Validations")
-		
+
 		failureData := [][]string{{"Check", "Error", "Category"}}
 		for _, failure := range results.Failures {
 			failureData = append(failureData, []string{
@@ -215,7 +215,7 @@ func runPostValidate(cmd *cobra.Command, args []string) error {
 				failure.Category,
 			})
 		}
-		
+
 		pterm.DefaultTable.WithHasHeader().WithData(failureData).Render()
 	}
 
@@ -300,7 +300,7 @@ func (m *PostValidationManager) ApplyCommandLineOverrides() {
 	if postValidateNamespace != "" {
 		m.namespace = postValidateNamespace
 	}
-	
+
 	if postValidateTimeout != "" {
 		if timeout, err := time.ParseDuration(postValidateTimeout); err == nil {
 			m.timeout = timeout
@@ -311,7 +311,7 @@ func (m *PostValidationManager) ApplyCommandLineOverrides() {
 // ValidateEnvironment validates the deployment environment
 func (m *PostValidationManager) ValidateEnvironment() error {
 	m.logger.Info().Msg("Validating deployment environment")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Environment validation skipped")
 		return nil
@@ -333,7 +333,7 @@ func (m *PostValidationManager) ValidateEnvironment() error {
 // PerformHealthChecks performs application health checks
 func (m *PostValidationManager) PerformHealthChecks() error {
 	m.logger.Info().Msg("Performing health checks")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Health checks skipped")
 		return nil
@@ -347,13 +347,13 @@ func (m *PostValidationManager) PerformHealthChecks() error {
 	// 4. Checking resource utilization
 
 	healthChecks := []string{"backend-health", "frontend-health", "database-health"}
-	
+
 	for _, check := range healthChecks {
 		m.logger.Info().Str("check", check).Msg("Performing health check")
-		
+
 		// Simulate health check
 		time.Sleep(500 * time.Millisecond)
-		
+
 		// Simulate occasional failure for demo
 		if check == "database-health" && len(postValidateChecksOnly) == 0 {
 			// Simulate a failure occasionally
@@ -361,7 +361,7 @@ func (m *PostValidationManager) PerformHealthChecks() error {
 		} else {
 			m.logger.Info().Str("check", check).Msg("Health check passed")
 		}
-		
+
 		m.validationResults.PassedChecks++
 	}
 
@@ -372,7 +372,7 @@ func (m *PostValidationManager) PerformHealthChecks() error {
 // ValidateConnectivity validates service-to-service connectivity
 func (m *PostValidationManager) ValidateConnectivity() error {
 	m.logger.Info().Msg("Validating service connectivity")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Connectivity validation skipped")
 		return nil
@@ -386,7 +386,7 @@ func (m *PostValidationManager) ValidateConnectivity() error {
 	// 4. Testing load balancer functionality
 
 	connectivityChecks := []string{"service-mesh", "ingress-connectivity", "external-apis"}
-	
+
 	for _, check := range connectivityChecks {
 		m.logger.Info().Str("check", check).Msg("Validating connectivity")
 		time.Sleep(800 * time.Millisecond)
@@ -401,7 +401,7 @@ func (m *PostValidationManager) ValidateConnectivity() error {
 // RunCustomValidations runs custom validation scripts
 func (m *PostValidationManager) RunCustomValidations() error {
 	m.logger.Info().Msg("Running custom validation scripts")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Custom validations skipped")
 		return nil
@@ -415,7 +415,7 @@ func (m *PostValidationManager) RunCustomValidations() error {
 	// 4. Handling validation failures
 
 	customValidations := []string{"data-integrity", "api-contracts", "business-logic"}
-	
+
 	for _, validation := range customValidations {
 		m.logger.Info().Str("validation", validation).Msg("Running custom validation")
 		time.Sleep(1 * time.Second)
@@ -430,7 +430,7 @@ func (m *PostValidationManager) RunCustomValidations() error {
 // ValidatePerformance validates performance metrics
 func (m *PostValidationManager) ValidatePerformance() error {
 	m.logger.Info().Msg("Validating performance metrics")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Performance validation skipped")
 		return nil
@@ -444,7 +444,7 @@ func (m *PostValidationManager) ValidatePerformance() error {
 	// 4. Testing under load conditions
 
 	performanceChecks := []string{"response-times", "throughput", "resource-usage"}
-	
+
 	for _, check := range performanceChecks {
 		m.logger.Info().Str("check", check).Msg("Validating performance")
 		time.Sleep(1200 * time.Millisecond)
@@ -459,7 +459,7 @@ func (m *PostValidationManager) ValidatePerformance() error {
 // ValidateSecurity performs security validation
 func (m *PostValidationManager) ValidateSecurity() error {
 	m.logger.Info().Msg("Performing security validation")
-	
+
 	if postValidateDryRun {
 		m.logger.Info().Msg("DRY RUN: Security validation skipped")
 		return nil
@@ -473,7 +473,7 @@ func (m *PostValidationManager) ValidateSecurity() error {
 	// 4. Scanning for vulnerabilities
 
 	securityChecks := []string{"rbac-permissions", "network-policies", "auth-validation"}
-	
+
 	for _, check := range securityChecks {
 		m.logger.Info().Str("check", check).Msg("Performing security check")
 		time.Sleep(900 * time.Millisecond)
@@ -495,7 +495,7 @@ func (m *PostValidationManager) ExecuteStepsSequential(ctx context.Context, step
 
 		stepProgress := fmt.Sprintf("[%d/%d] %s", i+1, len(steps), step.description)
 		progressArea.Update(pterm.Sprintf("🔄 %s", stepProgress))
-		
+
 		m.logger.Info().Str("step", step.name).Msg("Starting validation step")
 
 		if err := step.action(); err != nil {
@@ -505,19 +505,19 @@ func (m *PostValidationManager) ExecuteStepsSequential(ctx context.Context, step
 				Error:    err.Error(),
 				Category: "validation",
 			})
-			
+
 			m.logger.Error().
 				Err(err).
 				Str("step", step.name).
 				Msg("Validation step failed")
-			
+
 			// Continue with other validations instead of failing immediately
 			progressArea.Update(pterm.Sprintf("❌ %s", stepProgress))
 		} else {
 			progressArea.Update(pterm.Sprintf("✅ %s", stepProgress))
 			m.logger.Info().Str("step", step.name).Msg("Validation step completed successfully")
 		}
-		
+
 		m.validationResults.TotalChecks++
 		time.Sleep(300 * time.Millisecond) // Visual feedback
 	}
@@ -535,14 +535,14 @@ func (m *PostValidationManager) ExecuteStepsParallel(ctx context.Context, steps 
 	// TODO: Implement proper parallel execution with goroutines and channels
 	// For now, execute sequentially but with different messaging
 	progressArea.Update("🔄 Running validations in parallel...")
-	
+
 	return m.ExecuteStepsSequential(ctx, steps, progressArea)
 }
 
 // GenerateReport generates post-validation report
 func (m *PostValidationManager) GenerateReport() error {
 	reportPath := filepath.Join(".", "reports", "post-validation-report.json")
-	
+
 	// Create reports directory
 	if err := os.MkdirAll(filepath.Dir(reportPath), 0755); err != nil {
 		return fmt.Errorf("failed to create reports directory: %w", err)
@@ -599,7 +599,7 @@ func filterValidationSteps(steps []ValidationStep, checksOnly []string) []Valida
 func loadPostValidateConfig(configPath string) (*PostValidationConfig, error) {
 	// Load configuration from file or use defaults
 	// For now, return a default configuration
-	
+
 	config := &PostValidationConfig{
 		Validation: config.ValidationConfig{
 			Post: config.PostValidation{

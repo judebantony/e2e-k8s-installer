@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -99,7 +98,6 @@ func runE2ETest(cmd *cobra.Command, args []string) error {
 	// Create spinner for initialization
 	spinner, _ := pterm.DefaultSpinner.Start("Initializing E2E test suite...")
 
-	ctx := context.Background()
 	startTime := time.Now()
 
 	// Load configuration
@@ -312,8 +310,8 @@ func NewE2ETestManager(config *config.E2EConfig, logger zerolog.Logger) (*E2ETes
 	manager := &E2ETestManager{
 		config:      config,
 		logger:      logger,
-		framework:   config.E2E.Framework,
-		testSuite:   config.E2E.TestSuite,
+		framework:   config.Framework,
+		testSuite:   config.TestSuite,
 		timeout:     timeout,
 		environment: make(map[string]string),
 		testResults: TestResults{
@@ -680,11 +678,6 @@ func loadE2EConfig(configPath string) (*config.E2EConfig, error) {
 			Archive: true,
 		},
 		Timeout: "30m",
-		Kubernetes: config.K8sConfig{
-			Namespace:   "default",
-			Timeout:     "5m",
-			WaitTimeout: "10m",
-		},
 	}
 
 	// TODO: Implement actual configuration loading from file

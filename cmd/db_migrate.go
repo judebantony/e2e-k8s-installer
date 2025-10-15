@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/rs/zerolog"
-	"github.com/pterm/pterm"
 	"github.com/judebantony/e2e-k8s-installer/pkg/config"
+	"github.com/pterm/pterm"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -75,7 +75,7 @@ func runDBMigrate(cmd *cobra.Command, args []string) error {
 
 	// Create spinner for initialization
 	spinner, _ := pterm.DefaultSpinner.Start("Initializing database migration...")
-	
+
 	startTime := time.Now()
 
 	// Load configuration
@@ -90,7 +90,7 @@ func runDBMigrate(cmd *cobra.Command, args []string) error {
 
 	// Create progress area
 	progressArea, _ := pterm.DefaultArea.Start()
-	
+
 	// Initialize database migration manager
 	manager, err := NewDBMigrationManager(config, logger)
 	if err != nil {
@@ -134,7 +134,7 @@ func runDBMigrate(cmd *cobra.Command, args []string) error {
 	for i, step := range steps {
 		stepProgress := fmt.Sprintf("[%d/%d] %s", i+1, len(steps), step.description)
 		progressArea.Update(pterm.Sprintf("🔄 %s", stepProgress))
-		
+
 		logger.Info().
 			Str("step", step.name).
 			Msg("Starting migration step")
@@ -153,7 +153,7 @@ func runDBMigrate(cmd *cobra.Command, args []string) error {
 		logger.Info().
 			Str("step", step.name).
 			Msg("Migration step completed successfully")
-		
+
 		time.Sleep(500 * time.Millisecond) // Visual feedback
 	}
 
@@ -167,10 +167,10 @@ func runDBMigrate(cmd *cobra.Command, args []string) error {
 	// Success summary
 	duration := time.Since(startTime)
 	pterm.Success.Printf("🎉 Database migration completed successfully in %v\n", duration.Round(time.Second))
-	
+
 	// Display summary information
 	pterm.DefaultSection.Println("Migration Summary")
-	
+
 	info := [][]string{
 		{"Database Host", manager.GetConnectionInfo().Host},
 		{"Database Name", manager.GetConnectionInfo().Database},
@@ -204,21 +204,21 @@ type DBMigrationConfig struct {
 
 // DBMigrationManager handles database migration operations
 type DBMigrationManager struct {
-	config                *config.DatabaseConfig
-	logger                zerolog.Logger
-	connectionInfo        *config.DatabaseConnection
-	migrationTool         string
-	migrationsApplied     int
-	migrationScriptsPath  string
+	config               *config.DatabaseConfig
+	logger               zerolog.Logger
+	connectionInfo       *config.DatabaseConnection
+	migrationTool        string
+	migrationsApplied    int
+	migrationScriptsPath string
 }
 
 // NewDBMigrationManager creates a new database migration manager
 func NewDBMigrationManager(config *config.DatabaseConfig, logger zerolog.Logger) (*DBMigrationManager, error) {
 	manager := &DBMigrationManager{
-		config: config,
-		logger: logger,
-		connectionInfo: &config.Connection,
-		migrationTool: config.Migration.Tool,
+		config:               config,
+		logger:               logger,
+		connectionInfo:       &config.Connection,
+		migrationTool:        config.Migration.Tool,
 		migrationScriptsPath: config.Migration.Path,
 	}
 
@@ -239,10 +239,10 @@ func NewDBMigrationManager(config *config.DatabaseConfig, logger zerolog.Logger)
 // ValidateConnection validates database connectivity
 func (m *DBMigrationManager) ValidateConnection() error {
 	m.logger.Info().Msg("Validating database connection")
-	
+
 	// Simulate connection validation
 	time.Sleep(1 * time.Second)
-	
+
 	if dbMigrateDryRun {
 		m.logger.Info().Msg("DRY RUN: Database connection validation skipped")
 		return nil
@@ -262,7 +262,7 @@ func (m *DBMigrationManager) ValidateConnection() error {
 // PrepareMigration prepares the migration environment
 func (m *DBMigrationManager) PrepareMigration() error {
 	m.logger.Info().Msg("Preparing migration environment")
-	
+
 	// Create migration working directory
 	workDir := filepath.Join(".", "migration-work")
 	if err := os.MkdirAll(workDir, 0755); err != nil {
@@ -272,13 +272,13 @@ func (m *DBMigrationManager) PrepareMigration() error {
 	// Download migration scripts if from Git repository
 	if m.config.Scripts.Repo != "" {
 		m.logger.Info().Str("repo", m.config.Scripts.Repo).Msg("Downloading migration scripts")
-		
+
 		// TODO: Implement Git repository cloning
 		// This would typically involve:
 		// 1. Cloning the repository
 		// 2. Checking out the specified branch/tag
 		// 3. Validating script structure
-		
+
 		time.Sleep(2 * time.Second) // Simulate download
 		m.logger.Info().Msg("Migration scripts downloaded successfully")
 	}
@@ -306,7 +306,7 @@ func (m *DBMigrationManager) RunMigration() error {
 		Str("tool", m.migrationTool).
 		Str("path", m.migrationScriptsPath).
 		Msg("Executing database migration")
-	
+
 	if dbMigrateDryRun {
 		m.logger.Info().Msg("DRY RUN: Migration execution skipped")
 		m.migrationsApplied = 5 // Simulate for demo
@@ -328,7 +328,7 @@ func (m *DBMigrationManager) RunMigration() error {
 // ValidateMigration validates the migration results
 func (m *DBMigrationManager) ValidateMigration() error {
 	m.logger.Info().Msg("Validating migration results")
-	
+
 	if dbMigrateDryRun {
 		m.logger.Info().Msg("DRY RUN: Migration validation skipped")
 		return nil
@@ -353,7 +353,7 @@ func (m *DBMigrationManager) ValidateMigration() error {
 // HealthCheck performs database health check
 func (m *DBMigrationManager) HealthCheck() error {
 	m.logger.Info().Msg("Performing database health check")
-	
+
 	if dbMigrateDryRun {
 		m.logger.Info().Msg("DRY RUN: Health check skipped")
 		return nil
@@ -374,18 +374,18 @@ func (m *DBMigrationManager) HealthCheck() error {
 // GenerateReport generates migration report
 func (m *DBMigrationManager) GenerateReport() error {
 	reportPath := filepath.Join(".", "reports", "migration-report.json")
-	
+
 	// Create reports directory
 	if err := os.MkdirAll(filepath.Dir(reportPath), 0755); err != nil {
 		return fmt.Errorf("failed to create reports directory: %w", err)
 	}
 
 	report := map[string]interface{}{
-		"timestamp":           time.Now().UTC().Format(time.RFC3339),
-		"database_host":       m.connectionInfo.Host,
-		"database_name":       m.connectionInfo.Database,
-		"migration_tool":      m.migrationTool,
-		"migrations_applied":  m.migrationsApplied,
+		"timestamp":          time.Now().UTC().Format(time.RFC3339),
+		"database_host":      m.connectionInfo.Host,
+		"database_name":      m.connectionInfo.Database,
+		"migration_tool":     m.migrationTool,
+		"migrations_applied": m.migrationsApplied,
 		"dry_run":            dbMigrateDryRun,
 		"status":             "success",
 	}
@@ -436,17 +436,17 @@ func (m *DBMigrationManager) initializeBaseline() error {
 
 func (m *DBMigrationManager) runFlywayMigration() error {
 	m.logger.Info().Msg("Running Flyway migration")
-	
+
 	// TODO: Implement Flyway migration execution
 	// This would typically involve:
 	// 1. Installing/validating Flyway CLI
 	// 2. Generating Flyway configuration
 	// 3. Executing flyway migrate command
 	// 4. Parsing migration results
-	
+
 	time.Sleep(3 * time.Second) // Simulate migration
 	m.migrationsApplied = 7
-	
+
 	m.logger.Info().
 		Int("migrations_applied", m.migrationsApplied).
 		Msg("Flyway migration completed")
@@ -455,17 +455,17 @@ func (m *DBMigrationManager) runFlywayMigration() error {
 
 func (m *DBMigrationManager) runLiquibaseMigration() error {
 	m.logger.Info().Msg("Running Liquibase migration")
-	
+
 	// TODO: Implement Liquibase migration execution
 	// This would typically involve:
 	// 1. Installing/validating Liquibase CLI
 	// 2. Generating changelog
 	// 3. Executing liquibase update command
 	// 4. Parsing migration results
-	
+
 	time.Sleep(4 * time.Second) // Simulate migration
 	m.migrationsApplied = 9
-	
+
 	m.logger.Info().
 		Int("migrations_applied", m.migrationsApplied).
 		Msg("Liquibase migration completed")
@@ -474,16 +474,16 @@ func (m *DBMigrationManager) runLiquibaseMigration() error {
 
 func (m *DBMigrationManager) runCustomMigration() error {
 	m.logger.Info().Msg("Running custom migration")
-	
+
 	// TODO: Implement custom migration execution
 	// This would typically involve:
 	// 1. Executing custom migration scripts
 	// 2. Managing migration state manually
 	// 3. Handling rollbacks and dependencies
-	
+
 	time.Sleep(2 * time.Second) // Simulate migration
 	m.migrationsApplied = 3
-	
+
 	m.logger.Info().
 		Int("migrations_applied", m.migrationsApplied).
 		Msg("Custom migration completed")
@@ -509,7 +509,7 @@ func (m *DBMigrationManager) runValidationQueries() error {
 func loadDBMigrateConfig(configPath string) (*config.DatabaseConfig, error) {
 	// Load configuration from file or use defaults
 	// For now, return a default configuration
-	
+
 	config := &config.DatabaseConfig{
 		Enabled:            true,
 		RunAsInitContainer: false,

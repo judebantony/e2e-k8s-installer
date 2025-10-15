@@ -14,8 +14,8 @@ import (
 
 // Manager handles Terraform operations
 type Manager struct {
-	config     *config.InfrastructureConfig
-	workingDir string
+	config      *config.InfrastructureConfig
+	workingDir  string
 	initialized bool
 }
 
@@ -58,10 +58,10 @@ func (m *Manager) Init() error {
 	// Initialize terraform
 	cmd := exec.Command("terraform", "init")
 	cmd.Dir = m.workingDir
-	
+
 	// Set environment variables
 	cmd.Env = append(os.Environ(), m.getTerraformEnvVars()...)
-	
+
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		logger.Error("Terraform init failed").
@@ -224,7 +224,7 @@ func (m *Manager) RunHealthChecks() error {
 // ensureMainTerraformFile creates a basic main.tf if it doesn't exist
 func (m *Manager) ensureMainTerraformFile() error {
 	mainTfPath := filepath.Join(m.workingDir, "main.tf")
-	
+
 	// Check if main.tf already exists
 	if _, err := os.Stat(mainTfPath); err == nil {
 		logger.Info("main.tf already exists").Str("path", mainTfPath).Send()
@@ -293,27 +293,27 @@ func (m *Manager) getProviderVariables() []string {
 // checkKubernetesHealth checks if Kubernetes cluster is healthy
 func (m *Manager) checkKubernetesHealth(endpoint interface{}) error {
 	logger.Info("Checking Kubernetes cluster health").Send()
-	
+
 	// Basic health check - try to connect to the cluster
 	// This is a simple implementation - in production you'd want more sophisticated checks
 	if endpointStr, ok := endpoint.(string); ok && endpointStr != "" {
 		logger.Info("Kubernetes endpoint available").Str("endpoint", endpointStr).Send()
 		return nil
 	}
-	
+
 	return fmt.Errorf("kubernetes endpoint not available")
 }
 
 // checkDatabaseHealth checks if database is healthy
 func (m *Manager) checkDatabaseHealth(endpoint interface{}) error {
 	logger.Info("Checking database health").Send()
-	
+
 	// Basic health check for database
 	if endpointStr, ok := endpoint.(string); ok && endpointStr != "" {
 		logger.Info("Database endpoint available").Str("endpoint", endpointStr).Send()
 		return nil
 	}
-	
+
 	return fmt.Errorf("database endpoint not available")
 }
 

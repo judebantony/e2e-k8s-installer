@@ -8,23 +8,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/rs/zerolog"
-	"github.com/pterm/pterm"
 	"github.com/judebantony/e2e-k8s-installer/pkg/config"
+	"github.com/pterm/pterm"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 )
 
 var (
-	deployConfigPath     string
-	deployVerbose        bool
-	deployDryRun         bool
-	deployNamespace      string
-	deployWait           bool
-	deployTimeout        string
-	deployAtomic         bool
-	deployCreateNS       bool
+	deployConfigPath      string
+	deployVerbose         bool
+	deployDryRun          bool
+	deployNamespace       string
+	deployWait            bool
+	deployTimeout         string
+	deployAtomic          bool
+	deployCreateNS        bool
 	deploySkipHealthCheck bool
-	deployChartsOnly     []string
+	deployChartsOnly      []string
 )
 
 // deployCmd represents the deploy command
@@ -89,7 +89,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 
 	// Create spinner for initialization
 	spinner, _ := pterm.DefaultSpinner.Start("Initializing deployment...")
-	
+
 	startTime := time.Now()
 
 	// Load configuration
@@ -113,7 +113,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 
 	// Create progress area
 	progressArea, _ := pterm.DefaultArea.Start()
-	
+
 	// Execute deployment steps
 	steps := []struct {
 		name        string
@@ -155,7 +155,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	for i, step := range steps {
 		stepProgress := fmt.Sprintf("[%d/%d] %s", i+1, len(steps), step.description)
 		progressArea.Update(pterm.Sprintf("🔄 %s", stepProgress))
-		
+
 		logger.Info().
 			Str("step", step.name).
 			Msg("Starting deployment step")
@@ -186,7 +186,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		logger.Info().
 			Str("step", step.name).
 			Msg("Deployment step completed successfully")
-		
+
 		time.Sleep(500 * time.Millisecond) // Visual feedback
 	}
 
@@ -200,10 +200,10 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	// Success summary
 	duration := time.Since(startTime)
 	pterm.Success.Printf("🎉 Deployment completed successfully in %v\n", duration.Round(time.Second))
-	
+
 	// Display summary information
 	pterm.DefaultSection.Println("Deployment Summary")
-	
+
 	deployedCharts := manager.GetDeployedCharts()
 	info := [][]string{
 		{"Namespace", manager.GetNamespace()},
@@ -223,7 +223,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	// Display deployed charts
 	if len(deployedCharts) > 0 {
 		pterm.DefaultSection.Println("Deployed Charts")
-		
+
 		chartData := [][]string{{"Chart", "Namespace", "Status", "Version"}}
 		for _, chart := range deployedCharts {
 			chartData = append(chartData, []string{
@@ -233,7 +233,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 				chart.Version,
 			})
 		}
-		
+
 		pterm.DefaultTable.WithHasHeader().WithData(chartData).Render()
 	}
 
@@ -256,13 +256,13 @@ type ChartDeploymentStatus struct {
 
 // DeploymentManager handles application deployment operations
 type DeploymentManager struct {
-	config              *config.DeploymentConfig
-	logger              zerolog.Logger
-	namespace           string
-	deployedCharts      []ChartDeploymentStatus
-	healthChecksPassed  int
-	kubeConfigPath      string
-	helmTimeout         time.Duration
+	config             *config.DeploymentConfig
+	logger             zerolog.Logger
+	namespace          string
+	deployedCharts     []ChartDeploymentStatus
+	healthChecksPassed int
+	kubeConfigPath     string
+	helmTimeout        time.Duration
 }
 
 // NewDeploymentManager creates a new deployment manager
@@ -289,7 +289,7 @@ func (m *DeploymentManager) ApplyCommandLineOverrides() {
 	if deployNamespace != "" {
 		m.namespace = deployNamespace
 	}
-	
+
 	if deployTimeout != "" {
 		if timeout, err := time.ParseDuration(deployTimeout); err == nil {
 			m.helmTimeout = timeout
@@ -300,7 +300,7 @@ func (m *DeploymentManager) ApplyCommandLineOverrides() {
 // ValidateEnvironment validates the Kubernetes environment
 func (m *DeploymentManager) ValidateEnvironment() error {
 	m.logger.Info().Msg("Validating Kubernetes environment")
-	
+
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Environment validation skipped")
 		return nil
@@ -322,7 +322,7 @@ func (m *DeploymentManager) ValidateEnvironment() error {
 // PrepareNamespace prepares the deployment namespace
 func (m *DeploymentManager) PrepareNamespace() error {
 	m.logger.Info().Str("namespace", m.namespace).Msg("Preparing deployment namespace")
-	
+
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Namespace preparation skipped")
 		return nil
@@ -345,7 +345,7 @@ func (m *DeploymentManager) PrepareNamespace() error {
 // ResolveDependencies resolves chart dependencies
 func (m *DeploymentManager) ResolveDependencies() error {
 	m.logger.Info().Msg("Resolving chart dependencies")
-	
+
 	// TODO: Implement dependency resolution
 	// This would typically involve:
 	// 1. Analyzing chart dependencies
@@ -361,7 +361,7 @@ func (m *DeploymentManager) ResolveDependencies() error {
 // DeployCharts deploys all Helm charts
 func (m *DeploymentManager) DeployCharts() error {
 	m.logger.Info().Msg("Deploying Helm charts")
-	
+
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Chart deployment skipped")
 		// Simulate deployed charts for display
@@ -375,7 +375,7 @@ func (m *DeploymentManager) DeployCharts() error {
 
 	// Get charts to deploy (filtered if charts-only is specified)
 	chartsToDeployment := m.getChartsToDeployment()
-	
+
 	// Sort charts by deployment order
 	sort.Slice(chartsToDeployment, func(i, j int) bool {
 		return chartsToDeployment[i].Order < chartsToDeployment[j].Order
@@ -416,7 +416,7 @@ func (m *DeploymentManager) PerformHealthChecks() error {
 	}
 
 	m.logger.Info().Msg("Performing health checks")
-	
+
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Health checks skipped")
 		m.healthChecksPassed = len(m.deployedCharts)
@@ -445,7 +445,7 @@ func (m *DeploymentManager) PerformHealthChecks() error {
 // ValidateDeployment validates the overall deployment status
 func (m *DeploymentManager) ValidateDeployment() error {
 	m.logger.Info().Msg("Validating deployment status")
-	
+
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Deployment validation skipped")
 		return nil
@@ -467,7 +467,7 @@ func (m *DeploymentManager) ValidateDeployment() error {
 // Rollback performs deployment rollback
 func (m *DeploymentManager) Rollback() error {
 	m.logger.Info().Msg("Performing deployment rollback")
-	
+
 	// TODO: Implement deployment rollback
 	// This would typically involve:
 	// 1. Rolling back Helm releases in reverse order
@@ -483,20 +483,20 @@ func (m *DeploymentManager) Rollback() error {
 // GenerateReport generates deployment report
 func (m *DeploymentManager) GenerateReport() error {
 	reportPath := filepath.Join(".", "reports", "deployment-report.json")
-	
+
 	// Create reports directory
 	if err := os.MkdirAll(filepath.Dir(reportPath), 0755); err != nil {
 		return fmt.Errorf("failed to create reports directory: %w", err)
 	}
 
 	report := map[string]interface{}{
-		"timestamp":           time.Now().UTC().Format(time.RFC3339),
-		"namespace":           m.namespace,
-		"charts_deployed":     len(m.deployedCharts),
+		"timestamp":            time.Now().UTC().Format(time.RFC3339),
+		"namespace":            m.namespace,
+		"charts_deployed":      len(m.deployedCharts),
 		"health_checks_passed": m.healthChecksPassed,
-		"dry_run":            deployDryRun,
-		"status":             "success",
-		"deployed_charts":    m.deployedCharts,
+		"dry_run":              deployDryRun,
+		"status":               "success",
+		"deployed_charts":      m.deployedCharts,
 	}
 
 	// TODO: Write actual report to file
@@ -570,4 +570,3 @@ func (m *DeploymentManager) performChartHealthCheck(chart ChartDeploymentStatus)
 	time.Sleep(1 * time.Second) // Simulate health check
 	return nil
 }
-

@@ -14,7 +14,7 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
-	
+
 	// Register custom duration validator
 	validate.RegisterValidation("duration", validateDuration)
 }
@@ -229,7 +229,7 @@ func (c *InstallerConfig) validateCustomRules() error {
 		orders := make(map[int]string)
 		for _, chart := range c.Deployment.Helm.Charts {
 			if existingChart, exists := orders[chart.Order]; exists {
-				return fmt.Errorf("duplicate deployment order %d for charts %s and %s", 
+				return fmt.Errorf("duplicate deployment order %d for charts %s and %s",
 					chart.Order, existingChart, chart.Name)
 			}
 			orders[chart.Order] = chart.Name
@@ -276,15 +276,15 @@ func (c *InstallerConfig) SaveConfig(path string) error {
 // GetWorkspaceConfig returns workspace-specific configuration
 func (c *InstallerConfig) GetWorkspaceConfig() WorkspaceConfig {
 	return WorkspaceConfig{
-		Root:           c.Installer.Workspace,
-		ArtifactsDir:   filepath.Join(c.Installer.Workspace, "artifacts"),
-		LogsDir:        filepath.Join(c.Installer.Workspace, "logs"),
-		ReportsDir:     filepath.Join(c.Installer.Workspace, "reports"),
-		StateDir:       filepath.Join(c.Installer.Workspace, "state"),
-		ScriptsDir:     filepath.Join(c.Installer.Workspace, "scripts"),
-		ChartsDir:      filepath.Join(c.Installer.Workspace, "charts"),
-		TerraformDir:   filepath.Join(c.Installer.Workspace, "terraform"),
-		TestsDir:       filepath.Join(c.Installer.Workspace, "tests"),
+		Root:         c.Installer.Workspace,
+		ArtifactsDir: filepath.Join(c.Installer.Workspace, "artifacts"),
+		LogsDir:      filepath.Join(c.Installer.Workspace, "logs"),
+		ReportsDir:   filepath.Join(c.Installer.Workspace, "reports"),
+		StateDir:     filepath.Join(c.Installer.Workspace, "state"),
+		ScriptsDir:   filepath.Join(c.Installer.Workspace, "scripts"),
+		ChartsDir:    filepath.Join(c.Installer.Workspace, "charts"),
+		TerraformDir: filepath.Join(c.Installer.Workspace, "terraform"),
+		TestsDir:     filepath.Join(c.Installer.Workspace, "tests"),
 	}
 }
 
@@ -327,7 +327,7 @@ func (w *WorkspaceConfig) EnsureDirectories() error {
 // ValidateWorkspace ensures the workspace is properly set up
 func (c *InstallerConfig) ValidateWorkspace() error {
 	workspace := c.GetWorkspaceConfig()
-	
+
 	// Check if workspace exists
 	if _, err := os.Stat(workspace.Root); os.IsNotExist(err) {
 		return fmt.Errorf("workspace directory does not exist: %s", workspace.Root)

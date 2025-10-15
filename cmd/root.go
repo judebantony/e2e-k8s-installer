@@ -58,7 +58,7 @@ func init() {
 	rootCmd.AddCommand(dbMigrateCmd)
 	rootCmd.AddCommand(deployCmd)
 	rootCmd.AddCommand(postValidateCmd)
-	// Temporary placeholder for e2e-test command  
+	// Temporary placeholder for e2e-test command
 	tempE2ECmd := &cobra.Command{
 		Use:   "e2e-test",
 		Short: "Execute end-to-end testing suite (placeholder)",

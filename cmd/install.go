@@ -7,10 +7,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/rs/zerolog"
-	"github.com/pterm/pterm"
 	"github.com/judebantony/e2e-k8s-installer/pkg/config"
+	"github.com/pterm/pterm"
+	"github.com/rs/zerolog"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -101,7 +101,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// Create spinner for initialization
 	spinner, _ := pterm.DefaultSpinner.Start("Initializing E2E Kubernetes installation...")
-	
+
 	ctx := context.Background()
 	startTime := time.Now()
 
@@ -131,7 +131,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// Create progress area
 	progressArea, _ := pterm.DefaultArea.Start()
-	
+
 	// Define installation steps with their dependencies and configurations
 	steps := []InstallationStep{
 		{
@@ -207,12 +207,12 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	// Handle installation result
 	if err != nil {
 		pterm.Error.Printf("❌ Installation failed: %v\n", err)
-		
+
 		// Save state for resume
 		if saveErr := manager.SaveState(); saveErr != nil {
 			logger.Error().Err(saveErr).Msg("Failed to save installation state")
 		}
-		
+
 		return err
 	}
 
@@ -227,10 +227,10 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	// Success summary
 	duration := time.Since(startTime)
 	pterm.Success.Printf("🎉 E2E Kubernetes installation completed successfully in %v\n", duration.Round(time.Second))
-	
+
 	// Display installation summary
 	pterm.DefaultSection.Println("Installation Summary")
-	
+
 	results := manager.GetInstallationResults()
 	info := [][]string{
 		{"Workspace", manager.GetWorkspace()},
@@ -256,7 +256,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// Display step details
 	pterm.DefaultSection.Println("Step Execution Details")
-	
+
 	stepData := [][]string{{"Step", "Status", "Duration", "Description"}}
 	for _, step := range manager.GetCompletedSteps() {
 		status := "✅ Completed"
@@ -265,7 +265,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		} else if step.Skipped {
 			status = "⏭️  Skipped"
 		}
-		
+
 		stepData = append(stepData, []string{
 			step.Name,
 			status,
@@ -273,7 +273,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 			step.Description,
 		})
 	}
-	
+
 	pterm.DefaultTable.WithHasHeader().WithData(stepData).Render()
 
 	// Display final information
@@ -330,14 +330,14 @@ type CompletedStep struct {
 
 // InstallationManager handles the complete installation orchestration
 type InstallationManager struct {
-	config      *config.InstallerConfig
-	logger      zerolog.Logger
-	workspace   string
-	stateFile   string
-	reportPath  string
-	state       *config.InstallState
-	results     InstallationResults
-	completed   []CompletedStep
+	config     *config.InstallerConfig
+	logger     zerolog.Logger
+	workspace  string
+	stateFile  string
+	reportPath string
+	state      *config.InstallState
+	results    InstallationResults
+	completed  []CompletedStep
 }
 
 // NewInstallationManager creates a new installation manager
@@ -375,7 +375,7 @@ func (m *InstallationManager) ApplyCommandLineOverrides() {
 	if installVerbose {
 		m.config.Installer.Verbose = true
 	}
-	
+
 	if installDryRun {
 		m.config.Installer.DryRun = true
 	}
@@ -401,7 +401,7 @@ func (m *InstallationManager) LoadState() error {
 	// 4. Preparing for resume
 
 	m.logger.Info().Str("state_file", m.stateFile).Msg("Loading installation state for resume")
-	
+
 	// For now, create a new state
 	m.state = &config.InstallState{
 		Steps:     []config.StepState{},
@@ -472,7 +472,7 @@ func (m *InstallationManager) ExecuteStepsSequential(ctx context.Context, steps 
 	for i, step := range steps {
 		stepProgress := fmt.Sprintf("[%d/%d] %s", i+1, len(steps), step.Description)
 		progressArea.Update(pterm.Sprintf("🔄 %s", stepProgress))
-		
+
 		m.logger.Info().
 			Str("step", step.Name).
 			Str("command", step.Command).
@@ -480,10 +480,10 @@ func (m *InstallationManager) ExecuteStepsSequential(ctx context.Context, steps 
 			Msg("Starting installation step")
 
 		stepStart := time.Now()
-		
+
 		if installDryRun {
 			m.logger.Info().Str("step", step.Name).Msg("DRY RUN: Step execution skipped")
-			
+
 			// Simulate step completion for dry run
 			m.completed = append(m.completed, CompletedStep{
 				Name:        step.Name,
@@ -504,7 +504,7 @@ func (m *InstallationManager) ExecuteStepsSequential(ctx context.Context, steps 
 					Skipped:     false,
 					Error:       err.Error(),
 				})
-				
+
 				m.results.FailedSteps++
 				m.logger.Error().
 					Err(err).
@@ -529,7 +529,7 @@ func (m *InstallationManager) ExecuteStepsSequential(ctx context.Context, steps 
 					Failed:      false,
 					Skipped:     false,
 				})
-				
+
 				m.results.CompletedSteps++
 				progressArea.Update(pterm.Sprintf("✅ %s", stepProgress))
 				m.logger.Info().
@@ -538,7 +538,7 @@ func (m *InstallationManager) ExecuteStepsSequential(ctx context.Context, steps 
 					Msg("Installation step completed successfully")
 			}
 		}
-		
+
 		m.results.TotalSteps++
 		time.Sleep(300 * time.Millisecond) // Visual feedback
 	}
@@ -556,7 +556,7 @@ func (m *InstallationManager) ExecuteStepsParallel(ctx context.Context, steps []
 	// TODO: Implement proper parallel execution with dependency resolution
 	// For now, execute sequentially but with different messaging
 	progressArea.Update("🔄 Executing installation steps with parallelization...")
-	
+
 	return m.ExecuteStepsSequential(ctx, steps, progressArea)
 }
 
@@ -673,9 +673,9 @@ func (m *InstallationManager) GetCompletedSteps() []CompletedStep {
 func loadInstallConfig(configPath string) (*config.InstallerConfig, error) {
 	// Load configuration from file or use defaults
 	// For now, return a default configuration
-	
+
 	config := config.GenerateDefaultConfig()
-	
+
 	// TODO: Implement actual configuration loading from file
 	// This would typically involve:
 	// 1. Reading configuration file
