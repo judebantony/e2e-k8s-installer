@@ -9,7 +9,7 @@ require (
 	github.com/pterm/pterm v0.12.70
 	// Enhanced dependencies for advanced functionality
 	github.com/rs/zerolog v1.31.0
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.17.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -19,7 +19,7 @@ require (
 	github.com/containerd/stargz-snapshotter/estargz v0.14.3 // indirect
 	github.com/docker/cli v24.0.6+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
-	github.com/docker/docker v24.0.6+incompatible // indirect
+	github.com/docker/docker v25.0.13+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
