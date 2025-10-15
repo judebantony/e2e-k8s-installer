@@ -463,8 +463,8 @@ The deploy command now includes enterprise-grade health checks and monitoring:
 
 ## 📺 Console Output
 
-![Console Output](./dco/image.png)
-![Console Output1](./dco/image1.png)
+![Console Output](./docs/image.png)
+![Console Output1](./docs/image1.png)
 
 ## 📋 Requirements
 
