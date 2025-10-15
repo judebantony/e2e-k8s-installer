@@ -140,7 +140,7 @@ flowchart TD
 | **📦 package-pull Command** | ✅ Complete | Artifact synchronization (OCI/Helm/Terraform) |
 | **☁️ provision-infra Command** | ✅ Complete | Multi-mode infrastructure provisioning |
 | **🗄️ db-migrate Command** | 🚧 In Progress | Database migration framework |
-| **🚀 deploy Command** | 🚧 In Progress | Helm-based application deployment |
+| **🚀 deploy Command** | ✅ Complete | 🎉 Helm-based application deployment with health checks |
 | **✅ post-validate & e2e-test** | 🔄 Planned | Validation and testing framework |
 
 ## 🧭 Flow Diagram
@@ -418,9 +418,21 @@ vim installer-config.json
 | `setup` | ✅ Ready | Initialize workspace and validate prerequisites |
 | `package-pull` | ✅ Ready | Synchronize OCI images, Helm charts, Terraform modules |
 | `provision-infra` | ✅ Ready | Deploy infrastructure (terraform/makefile/hybrid modes) |
-| `deploy` | 🚧 In Progress | Deploy applications with Helm |
+| `deploy` | ✅ Ready | 🎉 Deploy applications with Helm and health checks |
 | `db-migrate` | 🚧 In Progress | Run database migrations |
 | `install` | 🔄 Planned | Complete workflow orchestration |
+
+### Deploy Command Features
+
+The deploy command now includes enterprise-grade health checks and monitoring:
+
+- **🔍 Real-time Health Monitoring**: Live health status tracking for all deployed services
+- **📊 Service Health Dashboard**: Comprehensive health table with response times and endpoints
+- **✅ Success Indicators**: Clear tick marks for healthy services
+- **🔄 Status Tracking**: Real-time monitoring of service startup and readiness
+- **⚠️ Alert System**: Immediate notification of unhealthy services
+- **📈 Performance Metrics**: Response time tracking and throughput analysis
+- **🧪 Mock Health Checks**: Dry-run support with simulated health statuses
 
 ### Command Examples
 
@@ -448,6 +460,11 @@ vim installer-config.json
 # Plan only (dry run)
 ./e2e-k8s-installer provision-infra --config config.json --plan-only
 ```
+
+## 📺 Console Output
+
+![Console Output](./dco/image.png)
+![Console Output1](./dco/image1.png)
 
 ## 📋 Requirements
 

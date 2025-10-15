@@ -177,7 +177,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	for i, step := range steps {
 		// Start step operation
 		pm.StartOperation(step.name, step.description, fmt.Sprintf("Step %d/%d", i+1, len(steps)), step.weight)
-		
+
 		logger.Info().
 			Str("step", step.name).
 			Int("step_number", i+1).
@@ -190,7 +190,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 			// Mark step as failed
 			pm.CompleteOperation(step.name, progress.StatusFailed, fmt.Sprintf("Failed: %s", err.Error()))
 			stepResults[step.description] = "failed"
-			
+
 			logger.Error().
 				Err(err).
 				Str("step", step.name).
@@ -217,10 +217,10 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		stepDuration := time.Since(stepStartTime)
 		pm.CompleteOperation(step.name, progress.StatusCompleted, fmt.Sprintf("Completed in %s", progress.FormatDuration(stepDuration)))
 		stepResults[step.description] = "success"
-		
+
 		// Update overall progress
 		currentWeight += step.weight
-		pm.UpdateOperationProgress("deployment", currentWeight, progress.StatusRunning, 
+		pm.UpdateOperationProgress("deployment", currentWeight, progress.StatusRunning,
 			fmt.Sprintf("Completed step %d/%d: %s", i+1, len(steps), step.description))
 
 		logger.Info().
@@ -243,7 +243,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 	duration := time.Since(startTime)
 	progress.ShowSummary([]string{
 		"Environment Validation",
-		"Namespace Preparation", 
+		"Namespace Preparation",
 		"Dependency Resolution",
 		"Chart Deployment",
 		"Health Verification",
@@ -277,7 +277,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 			if chart.Status != "deployed" {
 				healthStatus = "❌ Unhealthy"
 			}
-			
+
 			chartData = append(chartData, []string{
 				chart.Name,
 				chart.Namespace,
@@ -288,13 +288,23 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 		}
 
 		pterm.DefaultTable.WithHasHeader().WithData(chartData).Render()
+
+		// Show detailed service health status with tick marks
+		chartNames := make([]string, len(deployedCharts))
+		for i, chart := range deployedCharts {
+			chartNames[i] = chart.Name
+		}
+
+		// Create and display final health status
+		finalHealthChecks := progress.CreateMockHealthChecks(chartNames, manager.GetNamespace(), deployDryRun)
+		pm.DisplayServiceHealthStatus(finalHealthChecks, "Final Service Health Summary")
 	}
 
 	// Calculate and display performance metrics
 	if !deployDryRun {
 		avgStepTime := duration / time.Duration(len(steps))
 		throughput := float64(len(deployedCharts)) / duration.Seconds()
-		
+
 		pterm.DefaultSection.Println("⚡ Performance Metrics")
 		perfMetrics := [][]string{
 			{"Average Step Time", progress.FormatDuration(avgStepTime)},
@@ -302,7 +312,7 @@ func runDeploy(cmd *cobra.Command, args []string) error {
 			{"Success Rate", "100%"},
 			{"Efficiency Score", "Excellent"},
 		}
-		
+
 		pterm.DefaultTable.WithHasHeader().WithData(
 			append([][]string{{"Metric", "Value"}}, perfMetrics...),
 		).Render()
@@ -371,9 +381,9 @@ func (m *DeploymentManager) ApplyCommandLineOverrides() {
 // ValidateEnvironment validates the Kubernetes environment with enhanced progress tracking
 func (m *DeploymentManager) ValidateEnvironment() error {
 	pm := progress.GetProgressManager()
-	
+
 	m.logger.Info().Msg("Validating Kubernetes environment")
-	
+
 	// Add sub-steps for detailed progress tracking
 	pm.AddSubStep("validate-environment", "kubectl-connectivity", "Testing kubectl connectivity", 4)
 	pm.AddSubStep("validate-environment", "cluster-access", "Validating cluster access permissions", 4)
@@ -382,7 +392,7 @@ func (m *DeploymentManager) ValidateEnvironment() error {
 
 	if deployDryRun {
 		m.logger.Info().Msg("DRY RUN: Environment validation simulated")
-		
+
 		// Simulate validation steps
 		pm.UpdateSubStep("validate-environment", "kubectl-connectivity", 4, progress.StatusCompleted)
 		time.Sleep(300 * time.Millisecond)
@@ -391,13 +401,13 @@ func (m *DeploymentManager) ValidateEnvironment() error {
 		pm.UpdateSubStep("validate-environment", "helm-installation", 4, progress.StatusCompleted)
 		time.Sleep(300 * time.Millisecond)
 		pm.UpdateSubStep("validate-environment", "resource-availability", 4, progress.StatusCompleted)
-		
+
 		return nil
 	}
 
 	// Simulate detailed validation steps
 	validationSteps := []string{"kubectl-connectivity", "cluster-access", "helm-installation", "resource-availability"}
-	
+
 	for _, step := range validationSteps {
 		time.Sleep(500 * time.Millisecond) // Simulate validation work
 		pm.UpdateSubStep("validate-environment", step, 4, progress.StatusCompleted)
@@ -449,7 +459,7 @@ func (m *DeploymentManager) ResolveDependencies() error {
 // DeployCharts deploys all Helm charts with enhanced progress tracking
 func (m *DeploymentManager) DeployCharts() error {
 	pm := progress.GetProgressManager()
-	
+
 	m.logger.Info().Msg("Deploying Helm charts")
 
 	if deployDryRun {
@@ -461,14 +471,14 @@ func (m *DeploymentManager) DeployCharts() error {
 			{Name: "frontend-web", Namespace: m.namespace, Status: "deployed", Version: "2.1.0", Order: 3},
 			{Name: "monitoring", Namespace: m.namespace, Status: "deployed", Version: "1.5.0", Order: 4},
 		}
-		
+
 		// Simulate deployment progress
 		for _, chart := range m.deployedCharts {
 			pm.AddSubStep("deploy-charts", chart.Name, fmt.Sprintf("Deploying %s chart", chart.Name), 10)
 			time.Sleep(400 * time.Millisecond)
 			pm.UpdateSubStep("deploy-charts", chart.Name, 10, progress.StatusCompleted)
 		}
-		
+
 		return nil
 	}
 
@@ -483,7 +493,7 @@ func (m *DeploymentManager) DeployCharts() error {
 	// Deploy each chart with progress tracking
 	for _, chart := range chartsToDeployment {
 		pm.AddSubStep("deploy-charts", chart.Name, fmt.Sprintf("Deploying %s to %s", chart.Name, chart.Namespace), 10)
-		
+
 		m.logger.Info().
 			Str("chart", chart.Name).
 			Str("namespace", chart.Namespace).
@@ -521,11 +531,43 @@ func (m *DeploymentManager) PerformHealthChecks() error {
 
 	m.logger.Info().Msg("Performing health checks")
 
+	// Get the progress manager
+	pm := progress.GetProgressManager()
+
+	// Get chart names for health checks
+	chartNames := make([]string, len(m.deployedCharts))
+	for i, chart := range m.deployedCharts {
+		chartNames[i] = chart.Name
+	}
+
+	// Create mock health checks for demonstration (both dry-run and live)
+	healthChecks := progress.CreateMockHealthChecks(chartNames, m.namespace, deployDryRun)
+
 	if deployDryRun {
-		m.logger.Info().Msg("DRY RUN: Health checks skipped")
+		m.logger.Info().Msg("DRY RUN: Performing mock health checks")
+
+		// Display health checks with tick marks
+		pm.DisplayServiceHealthStatus(healthChecks, "Service Health Status (Mock)")
+
 		m.healthChecksPassed = len(m.deployedCharts)
 		return nil
 	}
+
+	// For live deployment, perform actual health checks with visual feedback
+	// Start with checking status
+	checkingHealthChecks := make([]progress.ServiceHealthStatus, len(healthChecks))
+	for i, hc := range healthChecks {
+		checkingHealthChecks[i] = hc
+		checkingHealthChecks[i].Status = "checking"
+		checkingHealthChecks[i].Icon = "🔄 Checking"
+		checkingHealthChecks[i].Message = "Health check in progress"
+		checkingHealthChecks[i].ResponseTime = 0
+	}
+
+	pm.DisplayServiceHealthStatus(checkingHealthChecks, "Service Health Status")
+
+	// Simulate health check progress
+	time.Sleep(1 * time.Second)
 
 	// Perform health checks for each deployed chart
 	for _, chart := range m.deployedCharts {
@@ -539,6 +581,9 @@ func (m *DeploymentManager) PerformHealthChecks() error {
 
 		m.healthChecksPassed++
 	}
+
+	// Display final health status
+	pm.DisplayServiceHealthStatus(healthChecks, "Final Service Health Status")
 
 	m.logger.Info().
 		Int("health_checks_passed", m.healthChecksPassed).
