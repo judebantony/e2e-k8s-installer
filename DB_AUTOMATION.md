@@ -90,6 +90,19 @@ Our technical implementation follows a **templated, hook-based orchestration pat
 - **Quality Gates**: Automated checks ensure all required scripts are present before deployment
 - **Compliance Enforcement**: No deployment proceeds without complete rollback and validation coverage
 
+#### **Standard Database Script Execution Framework**
+
+- **Flyway Integration**: All PostgreSQL/MySQL database migrations use industry-standard Flyway for consistent script execution and version management
+- **Template-Based Scripting**: Non-database operations (file manipulation, API calls, configuration updates) use standardized Python or Shell script templates
+- **Execution Engine Selection**:
+  - **Database Scripts**: Flyway handles SQL migrations with automatic checksums, version tracking, and rollback capabilities
+  - **System Scripts**: Python templates for complex logic, data processing, and external service integration
+  - **Infrastructure Scripts**: Shell script templates for file operations, service configuration, and environment setup
+- **Unified Orchestration**: Single migration orchestrator coordinates both Flyway database migrations and custom script execution in proper sequence
+- **Pattern Consistency**: All script types follow identical naming conventions, parameter passing, error handling, and logging patterns
+
+This approach ensures **consistent execution patterns** across **all migration types** while leveraging **industry-standard tools** for their specific domains.
+
 This approach ensures **zero-touch deployments** with **guaranteed rollback capabilities** and **complete audit trails** across all environments.
 
 ### 1. Repository Structure Strategy
