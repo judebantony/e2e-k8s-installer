@@ -80,8 +80,6 @@ migrations/
 
 ### 2. Migration Execution Flow
 
-![doc](docs/image_sq.png)
-
 ```mermaid
 sequenceDiagram
     participant CI as CI/CD Pipeline
@@ -126,24 +124,51 @@ sequenceDiagram
 ### 3. Rollback Strategy Flow
 
 ```mermaid
-flowchart TD
-    A[Deployment Failure Detected] --> B{Migration Completed?}
-    B -->|Yes| C[Execute Rollback Job]
-    B -->|No| D[Cancel Migration Job]
+  flowchart TD
+    %% Styling and Layout Enhancements
+    classDef process fill:#dff5ff,stroke:#0099cc,stroke-width:1px,rx:8,ry:8;
+    classDef decision fill:#fff5cc,stroke:#e6b800,stroke-width:1px,rx:8,ry:8;
+    classDef action fill:#e8ffe8,stroke:#33cc33,stroke-width:1px,rx:8,ry:8;
+    classDef alert fill:#ffe6e6,stroke:#ff4d4d,stroke-width:1px,rx:8,ry:8;
+    classDef log fill:#f2f2f2,stroke:#666,stroke-width:1px,rx:8,ry:8;
     
-    C --> E[Load Rollback Scripts]
-    E --> F[Execute Rollback in Reverse Order]
-    F --> G[Validate Rollback Success]
-    G --> H{Rollback Successful?}
+    %% Flow
+    A([🚨 Deployment Failure Detected]):::alert --> B{{Migration Completed?}}:::decision
     
-    H -->|Yes| I[Update Migration Metadata]
-    H -->|No| J[Manual Intervention Required]
+    %% If Yes
+    B -->|Yes| C[Execute Rollback Job]:::process
+    C --> E[Load Rollback Scripts]:::process
+    E --> F[Execute Rollback in Reverse Order]:::process
+    F --> G[Validate Rollback Success]:::process
+    G --> H{{Rollback Successful?}}:::decision
+    H -->|Yes| I[Update Migration Metadata]:::action
+    H -->|No| J[Manual Intervention Required]:::alert
+    I --> K[Log Rollback Complete]:::log
+    J --> L[Alert Operations Team]:::alert
+    L --> K
     
-    I --> K[Log Rollback Complete]
-    J --> L[Alert Operations Team]
-    
-    D --> M[Cleanup Failed Migration]
+    %% If No
+    B -->|No| D[Cancel Migration Job]:::process
+    D --> M[Cleanup Failed Migration]:::process
     M --> K
+
+    %% Section Titles
+    subgraph sg1 ["🧭 Rollback Decision Flow"]
+        A
+        B
+        C
+        D
+        E
+        F
+        G
+        H
+        I
+        J
+        K
+        L
+        M
+    end
+
 ```
 
 ## 🛠️ Technical Components
