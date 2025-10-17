@@ -41,11 +41,23 @@ Our solution provides a **Kubernetes-native, multi-project database migration fr
 
 ## 🏗️ High-Level Architecture
 
+**Purpose**: Provide a comprehensive visual overview of how all components interact within the Kubernetes-native database migration framework.
+
+**What we're doing**: Designing an end-to-end architecture that shows the integration between CI/CD pipelines, Kubernetes orchestration, database migration jobs, monitoring systems, and audit trails. The architecture demonstrates both the technical components and the data flow across different environments.
+
+**Why**: A clear architectural diagram helps stakeholders understand system complexity, component relationships, deployment patterns, and operational workflows. This enables better decision-making, troubleshooting, and future enhancements.
+
 ![doc](docs/image_db.png)
 
 ## 🚀 Technical Implementation Flow
 
 ### 1. Repository Structure Strategy
+
+**Purpose**: Standardize how database migration files are organized across multiple projects to ensure consistency, maintainability, and scalability.
+
+**What we're doing**: Creating a hierarchical folder structure that separates projects, versions, database types, and operation types (new installs vs upgrades). This structure supports both fresh installations and incremental upgrades while maintaining clear separation between different projects and database technologies.
+
+**Why**: A well-organized repository structure prevents migration conflicts, enables parallel development across teams, supports multiple database types, and provides clear upgrade paths between versions.
 
 ```plaintext
 migrations/
@@ -79,6 +91,12 @@ migrations/
 ```
 
 ### 2. Migration Execution Flow
+
+**Purpose**: Define a systematic, automated process for executing database migrations that integrates seamlessly with Kubernetes deployments and CI/CD pipelines.
+
+**What we're doing**: Implementing a multi-stage workflow that includes pre-migration validation, migration execution, post-migration validation, and audit logging. The flow handles both new installations and upgrades while ensuring data integrity and system reliability.
+
+**Why**: Automated migration execution eliminates human error, ensures consistent deployment processes across environments, provides rollback capabilities, and maintains complete audit trails for compliance and debugging.
 
 ```mermaid
 sequenceDiagram
@@ -123,53 +141,13 @@ sequenceDiagram
 
 ### 3. Rollback Strategy Flow
 
-```mermaid
-  flowchart TD
-    %% Styling and Layout Enhancements
-    classDef process fill:#dff5ff,stroke:#0099cc,stroke-width:1px,rx:8,ry:8;
-    classDef decision fill:#fff5cc,stroke:#e6b800,stroke-width:1px,rx:8,ry:8;
-    classDef action fill:#e8ffe8,stroke:#33cc33,stroke-width:1px,rx:8,ry:8;
-    classDef alert fill:#ffe6e6,stroke:#ff4d4d,stroke-width:1px,rx:8,ry:8;
-    classDef log fill:#f2f2f2,stroke:#666,stroke-width:1px,rx:8,ry:8;
-    
-    %% Flow
-    A([🚨 Deployment Failure Detected]):::alert --> B{{Migration Completed?}}:::decision
-    
-    %% If Yes
-    B -->|Yes| C[Execute Rollback Job]:::process
-    C --> E[Load Rollback Scripts]:::process
-    E --> F[Execute Rollback in Reverse Order]:::process
-    F --> G[Validate Rollback Success]:::process
-    G --> H{{Rollback Successful?}}:::decision
-    H -->|Yes| I[Update Migration Metadata]:::action
-    H -->|No| J[Manual Intervention Required]:::alert
-    I --> K[Log Rollback Complete]:::log
-    J --> L[Alert Operations Team]:::alert
-    L --> K
-    
-    %% If No
-    B -->|No| D[Cancel Migration Job]:::process
-    D --> M[Cleanup Failed Migration]:::process
-    M --> K
+**Purpose**: Provide a comprehensive rollback mechanism that can safely revert database changes when deployments fail or issues are discovered in production.
 
-    %% Section Titles
-    subgraph sg1 ["🧭 Rollback Decision Flow"]
-        A
-        B
-        C
-        D
-        E
-        F
-        G
-        H
-        I
-        J
-        K
-        L
-        M
-    end
+**What we're doing**: Implementing an automated rollback system that can restore database schemas, data, and application state to a previous known-good version. This includes automated backup creation, rollback script generation, and validation of rollback success.
 
-```
+**Why**: Rollback capabilities are critical for production stability, enabling teams to quickly recover from failed deployments, minimize downtime, and maintain business continuity. Without proper rollback strategies, failed migrations can cause extended outages and data loss.
+
+![doc](docs/image_rb.png)
 
 ## 🛠️ Technical Components
 
