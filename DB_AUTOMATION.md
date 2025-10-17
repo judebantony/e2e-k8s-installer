@@ -39,68 +39,7 @@ Our solution provides a **Kubernetes-native, multi-project database migration fr
 
 ## 🏗️ High-Level Architecture
 
-```mermaid
-graph TB
-    subgraph "Migration Repository"
-        MR[Migration Scripts Repository]
-        PC[Project Configurations]
-        VS[Version Management]
-    end
-    
-    subgraph "CI/CD Pipeline"
-        GH[GitHub Actions]
-        BM[Build Migration Images]
-        DK[Deploy to Kubernetes]
-    end
-    
-    subgraph "Kubernetes Cluster"
-        subgraph "Pre-Deployment"
-            PJ[Pre-Migration Job]
-            PV[Pre-Validation]
-        end
-        
-        subgraph "Application Deployment"
-            AD[App Deployment]
-            AS[App Services]
-        end
-        
-        subgraph "Post-Deployment"
-            POJ[Post-Migration Job]
-            POV[Post-Validation]
-        end
-    end
-    
-    subgraph "Databases"
-        PG[(PostgreSQL)]
-        MG[(MongoDB)]
-    end
-    
-    subgraph "Monitoring & Audit"
-        MT[Migration Tracking]
-        AL[Audit Logs]
-        ME[Metrics & Alerts]
-    end
-    
-    MR --> GH
-    PC --> GH
-    VS --> GH
-    GH --> BM
-    BM --> DK
-    DK --> PJ
-    PJ --> PV
-    PV --> AD
-    AD --> AS
-    AS --> POJ
-    POJ --> POV
-    PJ --> PG
-    PJ --> MG
-    POJ --> PG
-    POJ --> MG
-    PJ --> MT
-    POJ --> MT
-    MT --> AL
-    MT --> ME
-```
+![doc](doc/image_db.png)
 
 ## 🚀 Technical Implementation Flow
 
