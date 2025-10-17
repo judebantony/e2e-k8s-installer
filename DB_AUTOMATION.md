@@ -14,6 +14,7 @@ Modern cloud-native applications face significant challenges in database migrati
 - **Deployment Pipeline Gaps**: Database migrations are often disconnected from CI/CD pipelines
 - **Shared Database Access**: Teams need to share database credentials and access to run migrations manually
 - **Zero Downtime Requirements**: Need to perform migrations without service interruption
+- **Snowflow Implications**: Prevent complex, unmanageable migration paths that lead to "snowflow" scenarios 
 
 ### Business Impact
 
@@ -27,6 +28,7 @@ Modern cloud-native applications face significant challenges in database migrati
 Our solution provides a **Kubernetes-native, multi-project database migration framework** that automates pre/post deployment database operations with industry-standard tools and practices.
 
 ### Key Benefits
+
 - ✅ **Automated Migrations**: Zero-touch database migrations as part of deployment pipeline
 - ✅ **Industry Standards**: Uses Flyway (PostgreSQL) and migrate-mongo (MongoDB) best practices
 - ✅ **Idempotent Operations**: Safe to run multiple times without side effects
@@ -56,21 +58,25 @@ Our solution provides a **Kubernetes-native, multi-project database migration fr
 Our technical implementation follows a **templated, hook-based orchestration pattern** that integrates seamlessly with Kubernetes and CI/CD pipelines:
 
 #### **Pre/Post Deployment Hook Strategy**
+
 - **Pre-Deployment Hooks**: Execute database migrations before application deployment using Helm hooks with negative weights
 - **Post-Deployment Hooks**: Perform cleanup, validation, and audit logging after successful application startup
 - **Hook Orchestration**: Kubernetes Job definitions manage the complete lifecycle with proper error handling and rollback triggers
 
 #### **Kubernetes Job Template Pattern**
+
 - **Templated Definitions**: Standardized Kubernetes Job templates that can be reused across all projects and environments
 - **Dynamic Configuration**: Jobs accept project-specific parameters (version, database type, environment) through Helm values
 - **Resource Management**: Proper resource limits, security contexts, and RBAC permissions for secure execution
 
 #### **CI/CD Pipeline Orchestration**
+
 - **Pipeline Integration**: GitHub Actions, Jenkins, or other CI/CD tools trigger the entire migration workflow
 - **Environment Promotion**: Consistent deployment patterns from development → staging → production
 - **Automated Validation**: Each stage includes validation scripts to ensure migration success before proceeding
 
 #### **Mandatory Rollback & Validation Framework**
+
 - **Every Migration Requires**:
   - ✅ **Forward Migration Script**: The actual database changes
   - ✅ **Rollback Script**: Automated rollback to previous state
@@ -78,6 +84,7 @@ Our technical implementation follows a **templated, hook-based orchestration pat
   - ✅ **Pre-Migration Checks**: Environment and version compatibility validation
 
 #### **Templated Pattern Enforcement**
+
 - **Standardized Structure**: All projects follow identical folder structures and naming conventions
 - **Code Generation**: Templates automatically generate boilerplate migration, rollback, and validation scripts
 - **Quality Gates**: Automated checks ensure all required scripts are present before deployment
