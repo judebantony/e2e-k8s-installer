@@ -14,7 +14,7 @@ Modern cloud-native applications face significant challenges in database migrati
 - **Deployment Pipeline Gaps**: Database migrations are often disconnected from CI/CD pipelines
 - **Shared Database Access**: Teams need to share database credentials and access to run migrations manually
 - **Zero Downtime Requirements**: Need to perform migrations without service interruption
-- **Snowflow Implications**: Prevent complex, unmanageable migration paths that lead to "snowflow" scenarios 
+- **Snowflake Implications**: Prevent complex, unmanageable migration scripts that lead to "snowflake"  scenarios
 
 ### Business Impact
 
