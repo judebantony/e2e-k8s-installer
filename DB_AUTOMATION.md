@@ -39,7 +39,7 @@ Our solution provides a **Kubernetes-native, multi-project database migration fr
 
 ## 🏗️ High-Level Architecture
 
-![doc](doc/image_db.png)
+![doc](docs/image_db.png)
 
 ## 🚀 Technical Implementation Flow
 
