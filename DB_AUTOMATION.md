@@ -5,6 +5,7 @@
 Modern cloud-native applications face significant challenges in database migration management:
 
 ### Current Pain Points
+
 - **Manual Database Migrations**: Teams manually run database scripts during deployments, leading to human errors and inconsistencies
 - **Lack of Version Control**: Database schema changes aren't properly versioned or tracked alongside application code
 - **No Rollback Strategy**: Limited ability to rollback database changes when deployments fail
@@ -15,6 +16,7 @@ Modern cloud-native applications face significant challenges in database migrati
 - **Zero Downtime Requirements**: Need to perform migrations without service interruption
 
 ### Business Impact
+
 - **Deployment Delays**: Manual migration processes slow down release cycles
 - **Production Incidents**: Failed migrations cause service outages and data corruption
 - **Technical Debt**: Inconsistent database states across environments accumulate over time
@@ -45,7 +47,7 @@ Our solution provides a **Kubernetes-native, multi-project database migration fr
 
 ### 1. Repository Structure Strategy
 
-```
+```plaintext
 migrations/
 ├── projects/
 │   └── {project-name}/
@@ -77,6 +79,8 @@ migrations/
 ```
 
 ### 2. Migration Execution Flow
+
+![doc](docs/image_sq.png)
 
 ```mermaid
 sequenceDiagram
