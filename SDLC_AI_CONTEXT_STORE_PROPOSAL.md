@@ -145,26 +145,11 @@ flowchart TB
 
 ---
 
-## 🕸️ Knowledge Graph Architecture - Connected SDLC
+## � Detailed Component Architecture
 
-### Why Knowledge Graph?
+### 1. Data Sources & Ingestion
 
-**Traditional Challenges:**
-- **Isolated Data Silos**: Each tool stores data independently
-- **Lost Relationships**: Connections between entities are implicit or lost
-- **Manual Context Assembly**: Engineers manually piece together information
-- **Limited Insights**: Cannot answer complex "how" and "why" questions
-- **Poor Impact Analysis**: Hard to understand downstream effects of changes
-
-**Knowledge Graph Benefits:**
-- ✅ **Connected Experience**: Natural relationships between all SDLC entities
-- ✅ **Impact Analysis**: Understand ripple effects of any change
-- ✅ **Root Cause Analysis**: Trace issues to source through relationship paths
-- ✅ **Capability Discovery**: Find who can help or what exists
-- ✅ **Intelligent Recommendations**: Graph-based suggestions
-- ✅ **Compliance & Audit**: Complete lineage tracking
-
-### Knowledge Graph Schema
+The platform ingests data from 13+ enterprise SDLC systems:
 
 ```mermaid
 graph TB
