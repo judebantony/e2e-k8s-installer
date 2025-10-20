@@ -37,9 +37,101 @@ This proposal outlines the design and implementation strategy for building a **c
 
 ## 🏗️ High-Level Architecture
 
-### System Overview
+### System Overview with Knowledge Graph
 
-![Insert System Overview Diagram Here](./docs/image_datapipeline.png)
+```mermaid
+flowchart TB
+    subgraph "Data Sources Layer"
+        DS1[Application Portfolio]
+        DS2[ALM Systems]
+        DS3[Team Registry]
+        DS4[Org Hierarchy]
+        DS5[Jira/Project Mgmt]
+        DS6[GitHub/GitLab]
+        DS7[Confluence/Docs]
+        DS8[CI/CD Pipelines]
+        DS9[DevSecOps Tools]
+        DS10[Test Automation]
+        DS11[Release Mgmt]
+        DS12[Change Mgmt]
+        DS13[Observability/Monitoring]
+    end
+
+    subgraph "Ingestion Layer"
+        CDC[Change Data Capture]
+        API[API Integrations]
+        WEB[Webhooks]
+        POLL[Polling Connectors]
+    end
+
+    subgraph "Data Pipeline Layer - Apache Beam + Flink"
+        BEAM[Apache Beam Pipeline]
+        subgraph "Processing Stages"
+            EXTRACT[Data Extraction]
+            TRANSFORM[Transformation & Enrichment]
+            VALIDATE[Validation & Quality]
+            CHUNK[Chunking & Segmentation]
+            EMBED[Embedding Generation]
+            GRAPH_EXTRACT[Graph Entity & Relationship Extraction]
+        end
+    end
+
+    subgraph "Storage Layer - Context Fabric"
+        MILVUS[(Milvus Vector DB)]
+        MONGO[(MongoDB Document Store)]
+        NEO4J[(Neo4j Knowledge Graph)]
+        CACHE[(Redis Cache)]
+    end
+
+    subgraph "Knowledge Graph Layer"
+        ENTITY[Entity Resolution]
+        RELATIONSHIP[Relationship Mapping]
+        CAPABILITY[Capability Registry]
+        LINEAGE[Data Lineage Tracking]
+    end
+
+    subgraph "Query Layer - Unified Context Retrieval"
+        VECTOR_SEARCH[Vector Similarity Search]
+        HYBRID_SEARCH[Hybrid Search Engine]
+        GRAPH_QUERY[Graph Query Engine]
+        GRAPH_TRAVERSAL[Graph Traversal & Path Finding]
+    end
+
+    subgraph "Application Layer - Connected SDLC Experience"
+        RAG[RAG Engine with Graph Context]
+        CODEGEN[Context-Aware Code Generation]
+        INSIGHTS[Connected Insights API]
+        CHAT[AI Chat with Full Context]
+        SDLC_ORCHESTRATOR[SDLC Orchestrator]
+    end
+
+    DS1 & DS2 & DS3 & DS4 --> CDC
+    DS5 & DS6 & DS7 --> API
+    DS8 & DS9 & DS10 --> WEB
+    DS11 & DS12 & DS13 --> POLL
+
+    CDC & API & WEB & POLL --> BEAM
+    BEAM --> EXTRACT --> TRANSFORM --> VALIDATE --> CHUNK --> EMBED & GRAPH_EXTRACT
+
+    EMBED --> MILVUS
+    EMBED --> MONGO
+    GRAPH_EXTRACT --> NEO4J
+    
+    NEO4J --> ENTITY --> RELATIONSHIP --> CAPABILITY --> LINEAGE
+    
+    MILVUS & MONGO & NEO4J --> CACHE
+
+    CACHE --> VECTOR_SEARCH
+    CACHE --> HYBRID_SEARCH
+    CACHE --> GRAPH_QUERY
+    CACHE --> GRAPH_TRAVERSAL
+
+    VECTOR_SEARCH & HYBRID_SEARCH & GRAPH_QUERY & GRAPH_TRAVERSAL --> RAG
+    RAG --> CODEGEN
+    RAG --> INSIGHTS
+    RAG --> CHAT
+    RAG --> SDLC_ORCHESTRATOR
+```
 
 ### Architecture Principles
 
@@ -48,6 +140,1197 @@ This proposal outlines the design and implementation strategy for building a **c
 3. **Idempotent Processing**: Safe retry mechanisms for data pipeline
 4. **Multi-Tenant**: Support for multiple organizations and projects
 5. **Security First**: End-to-end encryption, RBAC, and audit logging
+6. **Graph-Native**: Knowledge graph at the core for connected experiences
+7. **Context Fabric**: Unified layer integrating vector, document, and graph stores
+
+---
+
+## 🕸️ Knowledge Graph Architecture - Connected SDLC
+
+### Why Knowledge Graph?
+
+**Traditional Challenges:**
+- **Isolated Data Silos**: Each tool stores data independently
+- **Lost Relationships**: Connections between entities are implicit or lost
+- **Manual Context Assembly**: Engineers manually piece together information
+- **Limited Insights**: Cannot answer complex "how" and "why" questions
+- **Poor Impact Analysis**: Hard to understand downstream effects of changes
+
+**Knowledge Graph Benefits:**
+- ✅ **Connected Experience**: Natural relationships between all SDLC entities
+- ✅ **Impact Analysis**: Understand ripple effects of any change
+- ✅ **Root Cause Analysis**: Trace issues to source through relationship paths
+- ✅ **Capability Discovery**: Find who can help or what exists
+- ✅ **Intelligent Recommendations**: Graph-based suggestions
+- ✅ **Compliance & Audit**: Complete lineage tracking
+
+### Knowledge Graph Schema
+
+```mermaid
+graph TB
+    subgraph "Organizational Layer"
+        ORG[Organization]
+        BU[Business Unit]
+        DEPT[Department]
+        TEAM[Team]
+        PERSON[Person]
+        ROLE[Role]
+    end
+
+    subgraph "Capability Layer"
+        CAPABILITY[Capability]
+        SKILL[Skill]
+        TOOL[Tool]
+        TECHNOLOGY[Technology]
+        STANDARD[Standard]
+        PATTERN[Design Pattern]
+    end
+
+    subgraph "Product/Project Layer"
+        PORTFOLIO[Portfolio]
+        PRODUCT[Product]
+        PROJECT[Project]
+        COMPONENT[Component]
+        FEATURE[Feature]
+        EPIC[Epic]
+        STORY[User Story]
+        TASK[Task]
+    end
+
+    subgraph "Code Layer"
+        REPO[Repository]
+        BRANCH[Branch]
+        COMMIT[Commit]
+        PR[Pull Request]
+        FILE[File]
+        PACKAGE[Package]
+        CLASS[Class]
+        FUNCTION[Function]
+        DEPENDENCY[Dependency]
+    end
+
+    subgraph "Documentation Layer"
+        DOC[Documentation]
+        WIKI[Wiki Page]
+        API_SPEC[API Specification]
+        ARCHITECTURE[Architecture Doc]
+        RUNBOOK[Runbook]
+        DECISION[Decision Record]
+    end
+
+    subgraph "Infrastructure Layer"
+        ENVIRONMENT[Environment]
+        CLUSTER[Cluster]
+        SERVICE[Service]
+        DATABASE[Database]
+        QUEUE[Message Queue]
+        CACHE[Cache]
+    end
+
+    subgraph "Pipeline Layer"
+        PIPELINE[CI/CD Pipeline]
+        BUILD[Build]
+        TEST[Test Suite]
+        DEPLOYMENT[Deployment]
+        RELEASE[Release]
+        ARTIFACT[Artifact]
+    end
+
+    subgraph "Quality Layer"
+        ISSUE[Issue/Bug]
+        VULN[Vulnerability]
+        DEBT[Technical Debt]
+        METRIC[Quality Metric]
+        TEST_CASE[Test Case]
+        COVERAGE[Code Coverage]
+    end
+
+    subgraph "Operations Layer"
+        INCIDENT[Incident]
+        ALERT[Alert]
+        CHANGE[Change Request]
+        MONITOR[Monitor]
+        LOG[Log Stream]
+        TRACE[Trace]
+    end
+
+    %% Organizational Relationships
+    ORG -->|contains| BU
+    BU -->|contains| DEPT
+    DEPT -->|contains| TEAM
+    TEAM -->|has_member| PERSON
+    PERSON -->|has_role| ROLE
+    PERSON -->|has_skill| SKILL
+
+    %% Capability Relationships
+    TEAM -->|has_capability| CAPABILITY
+    CAPABILITY -->|requires_skill| SKILL
+    CAPABILITY -->|uses_tool| TOOL
+    CAPABILITY -->|uses_technology| TECHNOLOGY
+    TEAM -->|follows_standard| STANDARD
+
+    %% Project Relationships
+    PORTFOLIO -->|contains| PRODUCT
+    PRODUCT -->|has_project| PROJECT
+    TEAM -->|owns| PROJECT
+    PROJECT -->|has_component| COMPONENT
+    PROJECT -->|has_epic| EPIC
+    EPIC -->|has_story| STORY
+    STORY -->|has_task| TASK
+    PERSON -->|assigned_to| TASK
+
+    %% Code Relationships
+    PROJECT -->|has_repository| REPO
+    REPO -->|has_branch| BRANCH
+    BRANCH -->|has_commit| COMMIT
+    COMMIT -->|authored_by| PERSON
+    COMMIT -->|modifies| FILE
+    COMMIT -->|closes| ISSUE
+    PR -->|reviewed_by| PERSON
+    FILE -->|part_of| COMPONENT
+    CLASS -->|depends_on| DEPENDENCY
+
+    %% Documentation Relationships
+    PROJECT -->|documented_by| DOC
+    COMPONENT -->|documented_by| API_SPEC
+    ARCHITECTURE -->|documents| COMPONENT
+    DECISION -->|affects| COMPONENT
+    PERSON -->|authored| DOC
+
+    %% Infrastructure Relationships
+    PROJECT -->|deployed_to| ENVIRONMENT
+    ENVIRONMENT -->|has_cluster| CLUSTER
+    CLUSTER -->|runs| SERVICE
+    SERVICE -->|uses| DATABASE
+    SERVICE -->|uses| QUEUE
+    COMPONENT -->|deployed_as| SERVICE
+
+    %% Pipeline Relationships
+    REPO -->|has_pipeline| PIPELINE
+    PIPELINE -->|produces| BUILD
+    BUILD -->|runs| TEST
+    BUILD -->|creates| ARTIFACT
+    DEPLOYMENT -->|deploys| ARTIFACT
+    DEPLOYMENT -->|to| ENVIRONMENT
+    RELEASE -->|contains| DEPLOYMENT
+
+    %% Quality Relationships
+    FILE -->|has_issue| ISSUE
+    ISSUE -->|found_by| TEST_CASE
+    VULN -->|affects| DEPENDENCY
+    DEBT -->|in| COMPONENT
+    METRIC -->|measures| COMPONENT
+    COVERAGE -->|covers| FILE
+
+    %% Operations Relationships
+    SERVICE -->|has_incident| INCIDENT
+    INCIDENT -->|triggered_by| ALERT
+    MONITOR -->|watches| SERVICE
+    ALERT -->|based_on| METRIC
+    CHANGE -->|impacts| SERVICE
+    INCIDENT -->|resolved_by| PERSON
+```
+
+### Knowledge Graph Entity Types
+
+#### Core Entity Definitions
+
+```yaml
+entity_types:
+  # Organizational Entities
+  Organization:
+    properties:
+      - org_id: UUID
+      - name: String
+      - industry: String
+      - size: Integer
+      - created_at: DateTime
+    relationships:
+      - CONTAINS → BusinessUnit
+      - HAS_CAPABILITY → Capability
+      - FOLLOWS_STANDARD → Standard
+      
+  Team:
+    properties:
+      - team_id: UUID
+      - name: String
+      - type: Enum[product, platform, infrastructure]
+      - location: String
+      - size: Integer
+    relationships:
+      - MEMBER_OF → Department
+      - HAS_MEMBER → Person
+      - OWNS → Project
+      - HAS_CAPABILITY → Capability
+      - USES_TOOL → Tool
+      
+  Person:
+    properties:
+      - person_id: UUID
+      - name: String
+      - email: String
+      - title: String
+      - tenure: Integer
+    relationships:
+      - MEMBER_OF → Team
+      - HAS_ROLE → Role
+      - HAS_SKILL → Skill
+      - AUTHORED → Commit
+      - REVIEWED → PullRequest
+      - ASSIGNED_TO → Task
+      - RESOLVED → Incident
+      
+  # Capability Entities
+  Capability:
+    properties:
+      - capability_id: UUID
+      - name: String
+      - category: Enum[development, devops, architecture, security]
+      - maturity_level: Integer [1-5]
+      - last_assessed: DateTime
+    relationships:
+      - OWNED_BY → Team
+      - REQUIRES_SKILL → Skill
+      - USES_TECHNOLOGY → Technology
+      - USES_TOOL → Tool
+      - ENABLED_BY → Standard
+      
+  Skill:
+    properties:
+      - skill_id: UUID
+      - name: String
+      - category: String
+      - proficiency_levels: Array[String]
+    relationships:
+      - REQUIRED_BY → Capability
+      - POSSESSED_BY → Person
+      - APPLIES_TO → Technology
+      
+  Technology:
+    properties:
+      - tech_id: UUID
+      - name: String
+      - version: String
+      - type: Enum[language, framework, platform]
+      - lifecycle_stage: Enum[adopt, trial, assess, hold]
+    relationships:
+      - USED_BY → Project
+      - REQUIRES_SKILL → Skill
+      - PART_OF → TechStack
+      
+  # Project/Product Entities
+  Product:
+    properties:
+      - product_id: UUID
+      - name: String
+      - description: String
+      - lifecycle_stage: Enum[concept, development, production, sunset]
+      - business_value: Integer
+    relationships:
+      - PART_OF → Portfolio
+      - HAS_PROJECT → Project
+      - OWNED_BY → Team
+      - SERVES → Customer
+      - DEPENDS_ON → Product
+      
+  Project:
+    properties:
+      - project_id: UUID
+      - name: String
+      - type: Enum[feature, maintenance, infrastructure]
+      - status: Enum[planning, active, on-hold, completed]
+      - priority: Integer
+    relationships:
+      - PART_OF → Product
+      - OWNED_BY → Team
+      - HAS_REPOSITORY → Repository
+      - HAS_COMPONENT → Component
+      - USES_TECHNOLOGY → Technology
+      - DEPLOYED_TO → Environment
+      
+  Component:
+    properties:
+      - component_id: UUID
+      - name: String
+      - type: Enum[service, library, frontend, backend]
+      - architecture_pattern: String
+      - criticality: Enum[low, medium, high, critical]
+    relationships:
+      - PART_OF → Project
+      - DEPENDS_ON → Component
+      - DEPLOYED_AS → Service
+      - DOCUMENTED_BY → Documentation
+      - HAS_REPOSITORY → Repository
+      
+  # Code Entities
+  Repository:
+    properties:
+      - repo_id: UUID
+      - name: String
+      - url: String
+      - language_primary: String
+      - size_kb: Integer
+      - activity_score: Float
+    relationships:
+      - OWNED_BY → Team
+      - PART_OF → Project
+      - HAS_BRANCH → Branch
+      - HAS_PIPELINE → Pipeline
+      - CONTAINS → File
+      
+  Commit:
+    properties:
+      - commit_sha: String
+      - message: String
+      - timestamp: DateTime
+      - files_changed: Integer
+      - lines_added: Integer
+      - lines_deleted: Integer
+    relationships:
+      - AUTHORED_BY → Person
+      - PART_OF → Branch
+      - MODIFIES → File
+      - REFERENCES → Issue
+      - CLOSES → Issue
+      
+  Dependency:
+    properties:
+      - dependency_id: UUID
+      - name: String
+      - version: String
+      - type: Enum[direct, transitive]
+      - license: String
+    relationships:
+      - USED_BY → Component
+      - HAS_VULNERABILITY → Vulnerability
+      - DEPENDS_ON → Dependency
+      
+  # Infrastructure Entities
+  Environment:
+    properties:
+      - env_id: UUID
+      - name: String
+      - type: Enum[dev, staging, production]
+      - region: String
+      - cloud_provider: String
+    relationships:
+      - HOSTS → Service
+      - HAS_CLUSTER → Cluster
+      - MONITORED_BY → Monitor
+      - CONFIGURED_BY → Configuration
+      
+  Service:
+    properties:
+      - service_id: UUID
+      - name: String
+      - type: Enum[api, worker, frontend]
+      - version: String
+      - health_status: Enum[healthy, degraded, down]
+    relationships:
+      - IMPLEMENTS → Component
+      - RUNS_IN → Environment
+      - DEPENDS_ON → Service
+      - USES → Database
+      - HAS_INCIDENT → Incident
+      - MONITORED_BY → Monitor
+      
+  # Pipeline Entities
+  Pipeline:
+    properties:
+      - pipeline_id: UUID
+      - name: String
+      - type: Enum[ci, cd, ci-cd]
+      - success_rate: Float
+      - avg_duration_sec: Integer
+    relationships:
+      - BELONGS_TO → Repository
+      - PRODUCES → Build
+      - DEPLOYS_TO → Environment
+      - CONFIGURED_BY → Person
+      
+  Deployment:
+    properties:
+      - deployment_id: UUID
+      - version: String
+      - timestamp: DateTime
+      - status: Enum[success, failed, rollback]
+      - duration_sec: Integer
+    relationships:
+      - DEPLOYS → Artifact
+      - TO → Environment
+      - PART_OF → Release
+      - TRIGGERED_BY → Person
+      - CAUSED → Incident
+      
+  # Quality & Operations Entities
+  Issue:
+    properties:
+      - issue_id: UUID
+      - title: String
+      - type: Enum[bug, feature, task]
+      - priority: Enum[low, medium, high, critical]
+      - status: Enum[open, in_progress, resolved, closed]
+    relationships:
+      - REPORTED_BY → Person
+      - ASSIGNED_TO → Person
+      - AFFECTS → Component
+      - CLOSED_BY → Commit
+      - RELATED_TO → Issue
+      
+  Incident:
+    properties:
+      - incident_id: UUID
+      - title: String
+      - severity: Enum[low, medium, high, critical]
+      - status: Enum[open, investigating, resolved]
+      - impact: String
+      - started_at: DateTime
+      - resolved_at: DateTime
+    relationships:
+      - AFFECTS → Service
+      - CAUSED_BY → Deployment
+      - TRIGGERED → Alert
+      - RESOLVED_BY → Person
+      - HAS_CHANGE → ChangeRequest
+      - DOCUMENTED_IN → Runbook
+      
+  Vulnerability:
+    properties:
+      - vuln_id: UUID
+      - cve_id: String
+      - severity: Enum[low, medium, high, critical]
+      - cvss_score: Float
+      - discovered_at: DateTime
+    relationships:
+      - AFFECTS → Dependency
+      - IMPACTS → Component
+      - FIXED_BY → Commit
+      - HAS_REMEDIATION → ChangeRequest
+```
+
+### Relationship Types & Semantics
+
+```yaml
+relationship_types:
+  # Organizational Relationships
+  MEMBER_OF:
+    cardinality: many-to-one
+    properties:
+      - start_date: DateTime
+      - end_date: DateTime
+      - role: String
+      
+  OWNS:
+    cardinality: one-to-many
+    properties:
+      - ownership_percentage: Float
+      - start_date: DateTime
+      
+  HAS_CAPABILITY:
+    cardinality: many-to-many
+    properties:
+      - maturity_level: Integer [1-5]
+      - last_assessed: DateTime
+      - evidence: String
+      
+  # Technical Relationships
+  DEPENDS_ON:
+    cardinality: many-to-many
+    properties:
+      - dependency_type: Enum[build, runtime, test]
+      - version_constraint: String
+      - criticality: Enum[low, medium, high]
+      
+  DEPLOYED_AS:
+    cardinality: one-to-many
+    properties:
+      - deployment_type: Enum[container, vm, serverless]
+      - replicas: Integer
+      - resources: Object
+      
+  IMPLEMENTS:
+    cardinality: many-to-one
+    properties:
+      - implementation_pattern: String
+      - completeness: Float [0-1]
+      
+  # Temporal Relationships
+  CAUSED_BY:
+    cardinality: many-to-one
+    properties:
+      - confidence_score: Float [0-1]
+      - evidence: Array[String]
+      - verified: Boolean
+      
+  FIXED_BY:
+    cardinality: many-to-many
+    properties:
+      - fix_type: Enum[hotfix, patch, refactor]
+      - verification_status: Enum[pending, verified, failed]
+      
+  # Traceability Relationships
+  TRACES_TO:
+    cardinality: many-to-many
+    properties:
+      - trace_type: Enum[requirement, design, implementation, test]
+      - bidirectional: Boolean
+```
+
+### Knowledge Graph Storage - Neo4j
+
+#### Neo4j Configuration
+
+```yaml
+neo4j_configuration:
+  deployment:
+    mode: cluster
+    core_servers: 3
+    read_replicas: 2
+    
+  performance:
+    heap_size: 16GB
+    page_cache_size: 8GB
+    transaction_log_size: 2GB
+    
+  indexes:
+    # Node indexes
+    - label: Person
+      properties: [person_id, email]
+      type: BTREE
+      
+    - label: Repository
+      properties: [repo_id, name]
+      type: BTREE
+      
+    - label: Service
+      properties: [service_id, name]
+      type: BTREE
+      
+    - label: Component
+      properties: [component_id, name, criticality]
+      type: BTREE
+      
+    # Relationship indexes
+    - type: DEPENDS_ON
+      properties: [version_constraint, criticality]
+      
+    - type: CAUSED_BY
+      properties: [confidence_score, timestamp]
+      
+  constraints:
+    # Uniqueness constraints
+    - label: Organization
+      property: org_id
+      type: UNIQUE
+      
+    - label: Person
+      property: email
+      type: UNIQUE
+      
+    - label: Repository
+      property: repo_id
+      type: UNIQUE
+      
+    # Existence constraints
+    - label: Incident
+      properties: [severity, started_at]
+      type: REQUIRED
+      
+  full_text_search:
+    - index_name: entity_search
+      labels: [Person, Team, Project, Component]
+      properties: [name, description]
+```
+
+### Graph Construction Pipeline
+
+```mermaid
+flowchart TB
+    subgraph "Entity Extraction"
+        RAW[Raw Data from Sources]
+        NER[Named Entity Recognition]
+        ENTITY_CLASS[Entity Classification]
+        ENTITY_RESOLVE[Entity Resolution & Deduplication]
+    end
+
+    subgraph "Relationship Extraction"
+        REL_DETECT[Relationship Detection]
+        REL_TYPE[Relationship Type Classification]
+        REL_VALIDATE[Relationship Validation]
+        CONF_SCORE[Confidence Scoring]
+    end
+
+    subgraph "Graph Enrichment"
+        INFER[Inference & Rule Application]
+        TRANSITIVE[Transitive Relationships]
+        HIERARCHY[Hierarchy Construction]
+        METRICS[Graph Metrics Calculation]
+    end
+
+    subgraph "Quality Assurance"
+        CONSISTENCY[Consistency Checks]
+        COMPLETENESS[Completeness Validation]
+        ANOMALY[Anomaly Detection]
+    end
+
+    subgraph "Graph Storage"
+        NEO4J[Neo4j Write]
+        INDEX_BUILD[Index Building]
+        CACHE_WARM[Cache Warming]
+    end
+
+    RAW --> NER --> ENTITY_CLASS --> ENTITY_RESOLVE
+    ENTITY_RESOLVE --> REL_DETECT --> REL_TYPE --> REL_VALIDATE --> CONF_SCORE
+    CONF_SCORE --> INFER --> TRANSITIVE --> HIERARCHY --> METRICS
+    METRICS --> CONSISTENCY --> COMPLETENESS --> ANOMALY
+    ANOMALY --> NEO4J --> INDEX_BUILD --> CACHE_WARM
+```
+
+### Capability Registry - Organization-Specific
+
+Each organization can define and track capabilities that get injected into the context fabric:
+
+```yaml
+capability_registry_schema:
+  # Technical Capabilities
+  technical_capabilities:
+    - id: "cap-backend-development"
+      name: "Backend Development"
+      category: "Development"
+      maturity_level: 4  # 1=Initial, 5=Optimizing
+      owned_by: ["team-platform", "team-product-a"]
+      required_skills:
+        - "Java/Spring Boot"
+        - "Microservices Architecture"
+        - "RESTful API Design"
+        - "PostgreSQL"
+      tools_used:
+        - "IntelliJ IDEA"
+        - "Maven"
+        - "Docker"
+        - "Kubernetes"
+      technologies:
+        - name: "Java"
+          version: "17"
+          lifecycle: "adopt"
+        - name: "Spring Boot"
+          version: "3.x"
+          lifecycle: "adopt"
+      standards_followed:
+        - "REST API Standards v2.0"
+        - "Security Best Practices"
+        - "Code Review Process"
+      evidence:
+        - repositories: ["backend-service-*"]
+        - successful_projects: 15
+        - certified_engineers: 8
+      last_assessed: "2025-09-15"
+      
+    - id: "cap-devops-automation"
+      name: "DevOps Automation"
+      category: "DevOps"
+      maturity_level: 5
+      owned_by: ["team-platform"]
+      required_skills:
+        - "Kubernetes Administration"
+        - "CI/CD Pipeline Development"
+        - "Infrastructure as Code"
+        - "Observability"
+      tools_used:
+        - "GitHub Actions"
+        - "Terraform"
+        - "ArgoCD"
+        - "Prometheus/Grafana"
+      
+  # Process Capabilities
+  process_capabilities:
+    - id: "cap-agile-delivery"
+      name: "Agile Delivery"
+      category: "Process"
+      maturity_level: 4
+      practices:
+        - "2-week sprints"
+        - "Daily standups"
+        - "Sprint planning & retrospectives"
+        - "Continuous integration"
+      metrics:
+        velocity_avg: 45
+        cycle_time_days: 3.5
+        deployment_frequency: "multiple per day"
+        
+  # Domain Capabilities
+  domain_capabilities:
+    - id: "cap-payment-processing"
+      name: "Payment Processing"
+      category: "Domain Knowledge"
+      maturity_level: 3
+      domain_expertise:
+        - "PCI DSS Compliance"
+        - "Payment Gateway Integration"
+        - "Fraud Detection"
+      owned_by: ["team-payments"]
+```
+
+### Connected SDLC Experience - Use Cases
+
+#### Use Case 1: Context-Aware Code Generation
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant AI as AI Assistant
+    participant Graph as Knowledge Graph
+    participant Vector as Vector Store
+    participant LLM as LLM
+
+    Dev->>AI: "Create payment service"
+    AI->>Graph: Query organizational context
+    
+    Graph->>AI: Returns:<br/>- Team capabilities (payment processing)<br/>- Standards (REST API v2.0)<br/>- Tech stack (Java 17, Spring Boot)<br/>- Similar services (payment-gateway-service)<br/>- Team members (experts)<br/>- Security standards (PCI DSS)
+    
+    AI->>Vector: Find similar code patterns
+    Vector->>AI: Returns relevant code examples
+    
+    AI->>LLM: Generate with full context
+    LLM->>AI: Code following org standards
+    
+    AI->>Dev: Generated service with:<br/>- Org-approved patterns<br/>- Required security measures<br/>- Proper dependencies<br/>- Team-specific practices
+```
+
+#### Use Case 2: Impact Analysis
+
+```cypher
+// Cypher Query: Find all components affected by a dependency upgrade
+MATCH path = (d:Dependency {name: 'log4j'})-[:USED_BY*1..5]->(c:Component)
+WHERE d.version < '2.17.0'
+WITH c, d, path
+MATCH (c)-[:DEPLOYED_AS]->(s:Service)-[:RUNS_IN]->(e:Environment)
+MATCH (c)-[:OWNED_BY]->(t:Team)-[:HAS_MEMBER]->(p:Person)
+RETURN 
+  c.name AS component,
+  s.name AS service,
+  e.name AS environment,
+  t.name AS owner_team,
+  collect(DISTINCT p.name) AS team_members,
+  length(path) AS dependency_depth,
+  c.criticality AS criticality
+ORDER BY c.criticality DESC, dependency_depth ASC
+```
+
+**Output**: Complete impact analysis showing:
+- All affected components
+- Services and environments impacted
+- Teams and people to notify
+- Dependency chain depth
+- Criticality prioritization
+
+#### Use Case 3: Root Cause Analysis
+
+```cypher
+// Cypher Query: Trace incident to root cause
+MATCH path = (i:Incident {incident_id: 'INC-2025-001'})
+  -[:AFFECTS]->(s:Service)
+  -[:CAUSED_BY*1..5]->(cause)
+WITH i, s, path, cause
+MATCH (cause)<-[:DEPLOYED]-(d:Deployment)
+  <-[:PRODUCED]-(b:Build)
+  <-[:PART_OF]-(c:Commit)
+  -[:AUTHORED_BY]->(p:Person)
+MATCH (c)-[:MODIFIES]->(f:File)
+OPTIONAL MATCH (c)-[:CLOSES]->(bug:Issue)
+RETURN 
+  i.title AS incident,
+  s.name AS affected_service,
+  cause,
+  d.version AS deployment_version,
+  c.commit_sha AS commit,
+  p.name AS author,
+  collect(DISTINCT f.file_path) AS changed_files,
+  collect(DISTINCT bug.issue_id) AS related_issues,
+  length(path) AS causal_chain_length
+```
+
+**Output**: Complete root cause trace showing:
+- Incident → Service → Deployment → Build → Commit → Author
+- All files changed in problematic commit
+- Related issues/bugs closed by that commit
+- Full causal chain visualization
+
+#### Use Case 4: Capability Discovery & Team Matching
+
+```cypher
+// Cypher Query: Find teams with specific capabilities for a new project
+MATCH (t:Team)-[:HAS_CAPABILITY]->(cap:Capability)
+WHERE cap.category IN ['Backend Development', 'Cloud Infrastructure']
+  AND cap.maturity_level >= 4
+WITH t, collect(cap) AS capabilities
+MATCH (t)-[:HAS_MEMBER]->(p:Person)-[:HAS_SKILL]->(s:Skill)
+WHERE s.name IN ['Kubernetes', 'Microservices', 'Python']
+WITH t, capabilities, collect(DISTINCT s) AS skills, collect(DISTINCT p) AS experts
+MATCH (t)-[:OWNS]->(proj:Project)-[:HAS_REPOSITORY]->(r:Repository)
+WITH t, capabilities, skills, experts, 
+     avg(r.activity_score) AS avg_activity,
+     count(proj) AS completed_projects
+WHERE completed_projects > 5
+RETURN 
+  t.name AS team,
+  t.size AS team_size,
+  [cap IN capabilities | cap.name] AS capabilities,
+  [skill IN skills | skill.name] AS technical_skills,
+  [expert IN experts | expert.name] AS team_experts,
+  completed_projects,
+  avg_activity AS code_activity_score
+ORDER BY size(capabilities) DESC, completed_projects DESC
+LIMIT 5
+```
+
+**Output**: Ranked list of teams best suited for the project based on:
+- Capability maturity levels
+- Required technical skills
+- Team experience
+- Past project success
+- Team capacity and activity
+
+#### Use Case 5: Compliance & Audit Trail
+
+```cypher
+// Cypher Query: Generate complete audit trail for a release
+MATCH path = (rel:Release {version: 'v2.5.0'})
+  -[:CONTAINS]->(dep:Deployment)
+  -[:DEPLOYS]->(art:Artifact)
+  -[:CREATED_BY]->(b:Build)
+  -[:FROM]->(c:Commit)
+WITH rel, dep, art, b, c, path
+MATCH (c)-[:AUTHORED_BY]->(author:Person)
+MATCH (pr:PullRequest)-[:CONTAINS]->(c)
+MATCH (pr)-[:REVIEWED_BY]->(reviewer:Person)
+MATCH (c)-[:CLOSES]->(issue:Issue)
+OPTIONAL MATCH (b)-[:RAN]->(test:TestSuite)
+OPTIONAL MATCH (dep)-[:APPROVED_BY]->(approver:Person)
+OPTIONAL MATCH (art)-[:HAS_VULNERABILITY]->(vuln:Vulnerability)
+RETURN 
+  rel.version AS release_version,
+  dep.environment AS deployed_to,
+  dep.timestamp AS deployment_time,
+  collect(DISTINCT {
+    commit: c.commit_sha,
+    author: author.name,
+    message: c.message,
+    timestamp: c.timestamp
+  }) AS commits,
+  collect(DISTINCT {
+    reviewer: reviewer.name,
+    approved: pr.approved
+  }) AS code_reviews,
+  collect(DISTINCT {
+    issue_id: issue.issue_id,
+    title: issue.title
+  }) AS resolved_issues,
+  collect(DISTINCT {
+    test_suite: test.name,
+    passed: test.passed,
+    failed: test.failed
+  }) AS test_results,
+  collect(DISTINCT {
+    vuln_id: vuln.cve_id,
+    severity: vuln.severity
+  }) AS vulnerabilities,
+  approver.name AS deployment_approver
+```
+
+**Output**: Complete audit trail including:
+- All commits in the release
+- Code review approvals
+- Issues resolved
+- Test results
+- Security scan results
+- Deployment approvals
+- Full traceability chain
+
+### Graph-Enhanced RAG Pipeline
+
+```mermaid
+flowchart TB
+    subgraph "Query Understanding"
+        USER_Q[User Query]
+        Q_PARSE[Query Parser]
+        INTENT[Intent Detection]
+        ENTITY_EXT[Entity Extraction]
+    end
+
+    subgraph "Multi-Source Retrieval"
+        GRAPH_Q[Graph Query<br/>Relationships & Context]
+        VECTOR_Q[Vector Search<br/>Semantic Similarity]
+        DOC_Q[Document Retrieval<br/>Full Content]
+    end
+
+    subgraph "Context Assembly"
+        GRAPH_CTX[Graph Context:<br/>- Relationships<br/>- Hierarchies<br/>- Lineage<br/>- Capabilities]
+        VECTOR_CTX[Vector Context:<br/>- Similar Code<br/>- Docs<br/>- Patterns]
+        DOC_CTX[Document Context:<br/>- Full Content<br/>- Metadata<br/>- History]
+        CONTEXT_FUSION[Context Fusion<br/>& Ranking]
+    end
+
+    subgraph "Context Enrichment"
+        PATH_FIND[Path Finding<br/>Connect Entities]
+        CAPABILITY_INJECT[Inject Org Capabilities]
+        STANDARD_INJECT[Inject Standards]
+        POLICY_CHECK[Policy & Compliance Check]
+    end
+
+    subgraph "LLM Generation"
+        PROMPT_BUILD[Prompt Building]
+        LLM_GEN[LLM Generation]
+        POST_PROCESS[Post-Processing]
+        VALIDATE[Validation]
+    end
+
+    USER_Q --> Q_PARSE --> INTENT & ENTITY_EXT
+    
+    INTENT --> GRAPH_Q & VECTOR_Q & DOC_Q
+    ENTITY_EXT --> GRAPH_Q
+    
+    GRAPH_Q --> GRAPH_CTX
+    VECTOR_Q --> VECTOR_CTX
+    DOC_Q --> DOC_CTX
+    
+    GRAPH_CTX & VECTOR_CTX & DOC_CTX --> CONTEXT_FUSION
+    
+    CONTEXT_FUSION --> PATH_FIND --> CAPABILITY_INJECT --> STANDARD_INJECT --> POLICY_CHECK
+    
+    POLICY_CHECK --> PROMPT_BUILD --> LLM_GEN --> POST_PROCESS --> VALIDATE
+    
+    VALIDATE --> OUTPUT[Context-Aware<br/>Compliant Response]
+```
+
+### Graph Query Patterns for Common SDLC Scenarios
+
+```cypher
+# Pattern 1: Find all dependencies of a service across environments
+MATCH (s:Service {name: $service_name})
+  -[:IMPLEMENTS]->(c:Component)
+  -[:DEPENDS_ON*1..3]->(dep:Component)
+  -[:DEPLOYED_AS]->(dep_service:Service)
+  -[:RUNS_IN]->(e:Environment)
+RETURN s.name, dep.name, dep_service.name, e.name, e.type
+
+# Pattern 2: Find experts for a specific technology
+MATCH (p:Person)-[:HAS_SKILL]->(s:Skill {name: $technology})
+WHERE s.proficiency_level >= 'advanced'
+WITH p, s
+MATCH (p)-[:MEMBER_OF]->(t:Team)-[:OWNS]->(proj:Project)
+  -[:USES_TECHNOLOGY]->(tech:Technology {name: $technology})
+WITH p, count(DISTINCT proj) AS project_count
+ORDER BY project_count DESC
+RETURN p.name, p.email, project_count
+
+# Pattern 3: Find similar components for reuse
+MATCH (c1:Component {name: $component_name})
+  -[:USES_TECHNOLOGY]->(t:Technology)
+WITH c1, collect(t) AS tech_stack
+MATCH (c2:Component)-[:USES_TECHNOLOGY]->(t2:Technology)
+WHERE c2 <> c1 AND t2 IN tech_stack
+WITH c1, c2, count(t2) AS common_tech_count
+WHERE common_tech_count >= 3
+MATCH (c2)-[:OWNED_BY]->(team:Team)
+MATCH (c2)-[:DOCUMENTED_BY]->(doc:Documentation)
+RETURN c2.name, team.name, common_tech_count, doc.url
+ORDER BY common_tech_count DESC
+
+# Pattern 4: Deployment blast radius analysis
+MATCH (d:Deployment {deployment_id: $deployment_id})
+  -[:DEPLOYS]->(art:Artifact)
+  -[:CREATED_FROM]->(repo:Repository)
+  -[:CONTAINS]->(comp:Component)
+WITH d, comp
+MATCH (comp)-[:DEPLOYED_AS]->(s:Service)
+  -[:RUNS_IN]->(e:Environment)
+MATCH (s)<-[:DEPENDS_ON]-(dependent_service:Service)
+MATCH (dependent_service)-[:RUNS_IN]->(dep_env:Environment)
+RETURN 
+  d.version,
+  comp.name AS component,
+  s.name AS service,
+  e.name AS environment,
+  collect(DISTINCT {
+    service: dependent_service.name,
+    environment: dep_env.name
+  }) AS impacted_services
+
+# Pattern 5: Knowledge path between two entities
+MATCH path = shortestPath(
+  (start {name: $start_entity})
+  -[*1..6]->
+  (end {name: $end_entity})
+)
+RETURN 
+  [node IN nodes(path) | labels(node)[0] + ': ' + node.name] AS path_nodes,
+  [rel IN relationships(path) | type(rel)] AS relationship_types,
+  length(path) AS hop_count
+```
+
+---
+
+## 🔗 Context Fabric Integration
+
+### Unified Context Query API
+
+```yaml
+context_fabric_api:
+  # Multi-modal context query
+  POST /api/v1/context/unified-query:
+    description: "Query across vector, document, and graph stores"
+    request:
+      query: "string - natural language query"
+      context_types: 
+        - "vector"      # Semantic similarity
+        - "graph"       # Relationships & paths
+        - "document"    # Full content
+      entity_filters:
+        teams: ["team-backend"]
+        projects: ["payment-service"]
+        technologies: ["Java", "Spring Boot"]
+      capability_filter:
+        required_capabilities: ["backend-development"]
+        min_maturity_level: 3
+      graph_options:
+        max_depth: 3
+        include_relationships: ["DEPENDS_ON", "OWNED_BY", "USES"]
+      vector_options:
+        top_k: 20
+        similarity_threshold: 0.7
+      response_format: "connected_context"
+    
+    response:
+      query_id: "uuid"
+      execution_time_ms: 350
+      context_graph:
+        nodes: [
+          {
+            id: "node-1"
+            type: "Component"
+            properties: {}
+            embedding_id: "vec-123"
+            document_id: "doc-456"
+          }
+        ]
+        edges: [
+          {
+            source: "node-1"
+            target: "node-2"
+            type: "DEPENDS_ON"
+            properties: {}
+          }
+        ]
+      vector_results: [
+        {
+          content: "..."
+          similarity_score: 0.92
+          metadata: {}
+          connected_entities: ["entity-1", "entity-2"]
+        }
+      ]
+      document_results: [
+        {
+          content: "..."
+          metadata: {}
+          graph_connections: [...]
+        }
+      ]
+      organizational_context:
+        capabilities: [...]
+        standards: [...]
+        team_expertise: [...]
+        similar_solutions: [...]
+      
+  # Capability-aware context injection
+  POST /api/v1/context/capability-injection:
+    description: "Inject organizational capabilities into context"
+    request:
+      query_intent: "create_service"
+      team_id: "team-backend"
+      required_capabilities: ["backend-development", "cloud-deployment"]
+    
+    response:
+      injected_context:
+        team_capabilities:
+          - capability: "Backend Development"
+            maturity: 4
+            standards: [...]
+            patterns: [...]
+            examples: [...]
+        organization_standards:
+          - standard: "REST API Guidelines v2.0"
+            document: "..."
+            examples: [...]
+        tech_stack:
+          approved: [...]
+          lifecycle_stage: [...]
+          versions: [...]
+        team_patterns:
+          common_patterns: [...]
+          anti_patterns: [...]
+        expert_knowledge:
+          experts: [...]
+          documented_solutions: [...]
+```
+
+### Context Fabric Architecture
+
+```mermaid
+flowchart TB
+    subgraph "Query Interface"
+        UNIFIED_API[Unified Context API]
+        QUERY_ROUTER[Query Router]
+    end
+
+    subgraph "Store Orchestrator"
+        VECTOR_COORD[Vector Store Coordinator]
+        GRAPH_COORD[Graph Store Coordinator]
+        DOC_COORD[Document Store Coordinator]
+    end
+
+    subgraph "Context Assembly"
+        RESULT_MERGER[Result Merger]
+        GRAPH_LINKER[Graph Linker<br/>Connect Results via KG]
+        CAPABILITY_INJECTOR[Capability Injector]
+        RANK_FUSE[Ranking & Fusion]
+    end
+
+    subgraph "Storage Backends"
+        MILVUS[(Milvus<br/>Vectors)]
+        NEO4J[(Neo4j<br/>Graph)]
+        MONGO[(MongoDB<br/>Documents)]
+    end
+
+    subgraph "Context Enrichment"
+        ORG_CONTEXT[Organization Context]
+        CAPABILITY_REG[Capability Registry]
+        STANDARD_LIB[Standards Library]
+        PATTERN_LIB[Pattern Library]
+    end
+
+    UNIFIED_API --> QUERY_ROUTER
+    
+    QUERY_ROUTER --> VECTOR_COORD & GRAPH_COORD & DOC_COORD
+    
+    VECTOR_COORD --> MILVUS
+    GRAPH_COORD --> NEO4J
+    DOC_COORD --> MONGO
+    
+    MILVUS & NEO4J & MONGO --> RESULT_MERGER
+    
+    RESULT_MERGER --> GRAPH_LINKER
+    GRAPH_LINKER --> CAPABILITY_INJECTOR
+    
+    ORG_CONTEXT & CAPABILITY_REG & STANDARD_LIB & PATTERN_LIB --> CAPABILITY_INJECTOR
+    
+    CAPABILITY_INJECTOR --> RANK_FUSE
+    
+    RANK_FUSE --> OUTPUT[Enriched Connected Context]
+```
+
+---
 
 ---
 
@@ -797,13 +2080,17 @@ flowchart LR
 - ✅ Set up Kafka cluster for event streaming
 - ✅ Deploy Milvus vector database cluster
 - ✅ Deploy MongoDB document store
+- ✅ **Deploy Neo4j knowledge graph cluster (3-node)**
 - ✅ Implement basic Apache Beam pipeline
 - ✅ Deploy Flink cluster
 - ✅ Create first 3 data source connectors (GitHub, Jira, Confluence)
+- ✅ **Define initial graph schema (core entities & relationships)**
 
 **Deliverables**:
+
 - Working data pipeline for 3 sources
 - Basic vector storage and retrieval
+- Initial graph schema deployed
 - Initial API endpoints
 
 ### Phase 2: Data Pipeline Enhancement (Weeks 5-8)
@@ -814,12 +2101,16 @@ flowchart LR
 - ✅ Add data quality and validation layers
 - ✅ Implement embedding generation pipeline
 - ✅ Add deduplication and entity linking
+- ✅ **Build graph construction pipeline (entity extraction → relationship mapping)**
+- ✅ **Implement entity resolution across data sources**
 - ✅ Performance optimization and tuning
 
 **Deliverables**:
+
 - All 13 data sources integrated
 - Production-ready pipeline with monitoring
 - Comprehensive data quality checks
+- Graph populated with initial entities and relationships
 
 ### Phase 3: Search & Retrieval (Weeks 9-12)
 
@@ -828,12 +2119,16 @@ flowchart LR
 - ✅ Implement hybrid search (vector + keyword)
 - ✅ Add re-ranking and score fusion
 - ✅ Build context assembly engine
-- ✅ Implement caching layer
+- ✅ **Implement graph traversal queries for context enrichment**
+- ✅ **Add capability-aware context injection**
+- ✅ Implement caching layer (graph query results + vector results)
 - ✅ Optimize query performance
 
 **Deliverables**:
+
 - Advanced search API
-- Context retrieval engine
+- Graph-enhanced context retrieval engine
+- Unified context query API (vector + document + graph)
 - Performance benchmarks
 
 ### Phase 4: RAG Integration (Weeks 13-16)
@@ -842,13 +2137,17 @@ flowchart LR
 
 - ✅ LLM integration (OpenAI, Anthropic, etc.)
 - ✅ RAG pipeline implementation
+- ✅ **Graph-enhanced RAG with relationship-aware context**
 - ✅ Prompt engineering and optimization
+- ✅ **Organizational capability injection into prompts**
 - ✅ Response quality evaluation
 - ✅ User feedback loop
 
 **Deliverables**:
-- Working RAG system
-- Code generation capabilities
+
+- Working graph-enhanced RAG system
+- Context-aware code generation with org standards
+- Connected SDLC experience
 - AI-powered SDLC assistance
 
 ### Phase 5: Production Hardening (Weeks 17-20)
@@ -856,20 +2155,210 @@ flowchart LR
 **Objectives**: Security, monitoring, and production readiness
 
 - ✅ Implement security features (auth, encryption, RBAC)
-- ✅ Set up comprehensive monitoring
+- ✅ **Graph-based access control and data lineage**
+- ✅ Set up comprehensive monitoring (all 3 stores)
 - ✅ Add alerting and incident response
-- ✅ Performance optimization
+- ✅ Performance optimization (graph query caching, index tuning)
+- ✅ **Capability registry management UI**
 - ✅ Documentation and training
 
 **Deliverables**:
-- Production-ready system
+
+- Production-ready system with full graph integration
 - Security audit passed
-- Complete documentation
-- Team training completed
+- Complete documentation (including graph query patterns)
+- Team training completed (including graph query language)
+- Capability management portal
+
+### Phase 6 (Optional): Advanced Graph Features (Weeks 21-24)
+
+**Objectives**: Advanced graph analytics and ML on graph
+
+- 🔄 Graph ML for anomaly detection
+- 🔄 Predictive impact analysis using graph neural networks
+- 🔄 Automated capability discovery from code patterns
+- 🔄 Advanced lineage tracking and compliance reporting
+- 🔄 Graph-based recommendations for team matching and expertise finding
+
+**Deliverables**:
+
+- ML-powered graph insights
+- Automated organizational capability mapping
+- Advanced compliance and audit features
 
 ---
 
-## 💰 Infrastructure Cost Estimation
+---
+
+## 🎯 Knowledge Graph: Key Benefits Summary
+
+### 1. **Connected SDLC Experience**
+
+Instead of isolated data silos, the Knowledge Graph creates a **unified fabric** connecting:
+
+- Code → Teams → Capabilities → Standards → Projects → Deployments
+- Issues → Commits → Pull Requests → Releases → Services → Incidents
+- People → Skills → Technologies → Components → Documentation
+
+**Result**: AI can understand the **full context** of any SDLC entity and its relationships, enabling truly intelligent recommendations.
+
+### 2. **Organizational Context Injection**
+
+Each organization defines its unique:
+
+- **Capabilities**: What can our teams do? (Backend development, DevOps automation, etc.)
+- **Standards**: What are our approved patterns? (REST API guidelines, security standards)
+- **Technology Stack**: What do we use and approve? (Java 17, Spring Boot 3.x, etc.)
+- **Team Expertise**: Who knows what? (Payment processing experts, Kubernetes admins)
+
+**Result**: AI generates code that **automatically follows your organization's specific practices and standards**.
+
+### 3. **Impact Analysis in Seconds**
+
+Graph queries answer complex questions instantly:
+
+- "Which services are affected if I upgrade this dependency?"
+- "Show me all deployment blast radius for this change"
+- "Find all components using vulnerable libraries"
+- "Which teams need to be notified about this infrastructure change?"
+
+**Result**: **Proactive risk management** instead of reactive firefighting.
+
+### 4. **Root Cause Analysis**
+
+Trace incidents back through the entire chain:
+
+Incident → Service → Deployment → Build → Commit → Author → Changed Files → Related Issues
+
+**Result**: **Resolve incidents 10x faster** with complete causal understanding.
+
+### 5. **Expertise Discovery**
+
+Find the right people instantly:
+
+- "Who are the experts in Kubernetes and has worked on payment services?"
+- "Which team has capability maturity level 4+ in cloud infrastructure?"
+- "Show me engineers who've contributed to similar components"
+
+**Result**: **Faster problem resolution** and better team collaboration.
+
+### 6. **Context-Aware Code Generation**
+
+When a developer asks AI to create a service, the system:
+
+1. **Queries the graph** to understand org context
+2. **Retrieves organizational capabilities** and standards
+3. **Finds similar implementations** from your codebase
+4. **Identifies team-specific patterns** and preferences
+5. **Generates code** that fits seamlessly into your architecture
+
+**Result**: **AI that understands YOUR organization**, not generic best practices.
+
+### 7. **Compliance & Audit Trail**
+
+Complete traceability for any release:
+
+- Every commit, author, and code review
+- All test results and security scans
+- Deployment approvals and timelines
+- Related issues and documentation
+- Full lineage from code to production
+
+**Result**: **One-click audit reports** and complete regulatory compliance.
+
+### 8. **Intelligent Recommendations**
+
+Graph traversal enables smart suggestions:
+
+- "Consider these reusable components instead of building from scratch"
+- "This technology is deprecated in your organization, use X instead"
+- "These 3 teams have solved similar problems, here's what they did"
+- "This change may impact 15 downstream services, here's the analysis"
+
+**Result**: **Proactive guidance** that leverages organizational knowledge.
+
+### 9. **Cross-Team Knowledge Sharing**
+
+Break down silos by connecting:
+
+- Similar components across teams
+- Common patterns and solutions
+- Shared dependencies and infrastructure
+- Related projects and initiatives
+
+**Result**: **Accelerated learning** and reduced duplication of effort.
+
+### 10. **Future-Ready Architecture**
+
+The Knowledge Graph enables future capabilities:
+
+- **Graph ML**: Predict deployment risks using graph neural networks
+- **Anomaly Detection**: Identify unusual patterns in SDLC workflows
+- **Automated Capability Mapping**: Discover organizational capabilities from code patterns
+- **Intelligent Team Matching**: ML-powered team formation for new projects
+
+**Result**: **Scalable AI platform** that grows with your organization.
+
+---
+
+## � Conclusion
+
+This **SDLC AI Context Store with Knowledge Graph** proposal delivers a comprehensive platform that:
+
+✅ **Ingests** data from 13+ SDLC tools in real-time  
+✅ **Stores** context using a hybrid approach (vectors + documents + graph)  
+✅ **Connects** all SDLC entities through a rich knowledge graph  
+✅ **Injects** organizational capabilities and standards into AI context  
+✅ **Retrieves** relevant, relationship-aware context for AI  
+✅ **Generates** organization-specific, compliant code and solutions  
+✅ **Enables** impact analysis, root cause tracing, and expertise discovery  
+✅ **Provides** a connected SDLC experience across the entire organization
+
+### Investment Summary
+
+- **Timeline**: 20-24 weeks (5-6 months)
+- **Infrastructure Cost**: ~$22,400/month (~$269K/year)
+- **Development Cost**: ~$120K (3 FTE for 6 months)
+- **Total Year 1**: ~$389K
+- **Ongoing Annual**: ~$329K (infrastructure + 1 FTE maintenance)
+
+### Expected ROI
+
+- **10x faster** incident resolution (graph-based root cause analysis)
+- **50% reduction** in code generation time (context-aware AI)
+- **80% improvement** in code quality (organization-specific patterns)
+- **5x faster** impact analysis (graph traversal vs. manual investigation)
+- **30% reduction** in duplicate work (cross-team knowledge sharing)
+- **Compliance ready** with complete audit trails
+
+### Next Steps
+
+1. **Week 1-2**: Architecture review and infrastructure planning
+2. **Week 3-4**: Set up development environment and deploy initial clusters
+3. **Week 5-8**: Build data pipeline with first 3 data sources
+4. **Week 9-12**: Complete all integrations and populate knowledge graph
+5. **Week 13-16**: Deploy graph-enhanced RAG system
+6. **Week 17-20**: Production hardening and launch
+
+---
+
+## 📚 References & Further Reading
+
+1. Apache Beam Documentation: <https://beam.apache.org/>
+2. Apache Flink Documentation: <https://flink.apache.org/>
+3. Milvus Documentation: <https://milvus.io/docs>
+4. Neo4j Graph Database: <https://neo4j.com/docs/>
+5. Sentence Transformers: <https://www.sbert.net/>
+6. LangChain RAG Guide: <https://python.langchain.com/docs/use_cases/question_answering/>
+7. Neo4j Graph Data Science: <https://neo4j.com/docs/graph-data-science/>
+8. Knowledge Graphs for AI: <https://arxiv.org/abs/2003.02320>
+
+---
+
+**Document Version**: 2.0  
+**Last Updated**: 2025-01-14  
+**Status**: Extended with Knowledge Graph Architecture  
+**Author**: SDLC AI Platform Team
 
 ### Monthly Infrastructure Costs (AWS-based)
 
@@ -879,19 +2368,24 @@ flowchart LR
 | **Flink on EKS** | 10 nodes (c5.4xlarge) | $4,800 | Pipeline processing |
 | **Milvus Cluster** | 5 nodes (r5.4xlarge) | $6,000 | Vector database |
 | **MongoDB Atlas** | M60 cluster | $3,500 | Document store |
+| **Neo4j Graph DB** | 3-node cluster (r5.2xlarge) | $2,190 | Knowledge graph |
+| **Neo4j Storage (EBS)** | 1 TB SSD | $100 | Graph persistence |
 | **Redis Cluster** | 3 nodes (r5.xlarge) | $1,200 | Caching layer |
 | **Load Balancers** | ALB + NLB | $200 | Traffic distribution |
 | **S3 Storage** | 10TB | $230 | Backups and artifacts |
 | **Data Transfer** | 5TB/month | $450 | Network egress |
 | **CloudWatch** | Logs + Metrics | $300 | Monitoring |
 | **Embedding APIs** | OpenAI/Cohere | $1,000 | If using external APIs |
-| **Total** | | **~$20,080** | Enterprise scale |
+| **Total** | | **~$22,370** | Enterprise scale with KG |
 
 **Cost Optimization Options**:
+
 - Self-hosted embedding models: Save $1,000/month
-- Reserved instances: Save 30-40%
-- Spot instances for non-critical workers: Save 60-70%
+- Reserved instances: Save 30-40% (~$6,700/month)
+- Spot instances for non-critical workers: Save 60-70% (~$2,000/month)
 - Regional optimization: Vary by location
+- Graph query caching: Reduce Neo4j load by 60%, potentially downsize cluster
+- Vector quantization: Reduce Milvus storage by 50%
 
 ---
 
