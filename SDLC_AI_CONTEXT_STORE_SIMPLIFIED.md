@@ -73,7 +73,7 @@ This proposal outlines the design and implementation strategy for building a **c
 | **Test Automation** | Automated Testing | Structured | Per Build | High | API |
 | **Release Management** | Release Orchestration | Structured | Daily | Medium | API |
 | **Change Management** | Change Tracking | Structured | Daily | Medium | API |
-| **Observability** | Application Monitoring | Real-time | Very High | Metrics API |
+| **Observability** | Application Monitoring | Real-time | Very High | Metrics | API |
 | **Incident Management** | Incident Tracking | Structured | Real-time | Medium | Webhook + API |
 | **Infrastructure** | Cloud/Infra Context | Structured | Daily | Medium | API |
 | **Application Dependency Mapping** | Dependency Analysis | Structured | Weekly | Medium | API |
