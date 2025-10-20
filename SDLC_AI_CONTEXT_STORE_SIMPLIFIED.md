@@ -80,6 +80,10 @@ This proposal outlines the design and implementation strategy for building a **c
 
 ### 2. Data Ingestion Architecture
 
+**High-Level Flow**: Data from 13+ SDLC sources flows through ingestion connectors into Apache Kafka, which acts as the event backbone. Apache Beam pipelines (running on Apache Flink runtime) consume events from Kafka, process them through 6 stages (validation, transformation, quality checks, chunking, embedding, storage), and write to the tri-store (Milvus + MongoDB + Neo4j).
+
+**Ingestion Layer Components:**
+
 ```mermaid
 flowchart LR
     subgraph "Source Systems"
@@ -119,121 +123,134 @@ flowchart LR
     TOPICS -.validates.-> SCHEMA
 ```
 
+**What Happens Here:**
+
+1. **Source Systems** → Various SDLC tools (Jira, GitHub, Confluence, Jenkins, etc.)
+2. **Ingestion Connectors** → Capture data via webhooks (real-time), CDC (database changes), REST APIs (polling), or event streams
+3. **Apache Kafka** → Buffers events in partitioned topics, provides backpressure handling and replay capability
+4. **Schema Registry** → Validates data schemas using Avro, ensures data consistency
+5. **Next Stage** → Events flow to Apache Beam pipeline on Flink (detailed below) →
+
 ### 3. Complete End-to-End Data Pipeline
 
 **Consolidated View: Sources → Kafka → Apache Beam on Flink → Storage**
 
 ```mermaid
-flowchart TB
-    subgraph Sources["📊 Data Sources"]
-        direction LR
-        S1[Jira]
-        S2[GitHub]
-        S3[Confluence]
-        S4[Jenkins]
-        S5[SonarQube]
-        S6[Prometheus]
-        S7[Datadog]
-        S8[Kubernetes]
-    end
+title Data Ingestion and Processing Flow
+direction right
 
-    subgraph Connectors["🔌 Ingestion Layer"]
-        direction TB
-        WH[Webhook Listener<br/>Real-time Events]
-        CDC[Debezium CDC<br/>Database Changes]
-        API[REST API Pollers<br/>Scheduled Sync]
-        STREAM[Event Streams<br/>Logs & Metrics]
-    end
+// Groups and nodes
+Data Sources [icon: database, color: lightblue] {
+  Jira [icon: globe, color: lightblue]
+  GitHub [icon: github, color: lightblue]
+  Confluence [icon: file-text, color: lightblue]
+  Jenkins [icon: settings, color: lightblue]
+  SonarQube [icon: activity, color: lightblue]
+  Prometheus [icon: bar-chart, color: lightblue]
+  Datadog [icon: bar-chart-2, color: lightblue]
+  Kubernetes [icon: server, color: lightblue]
+}
 
-    subgraph Queue["📨 Apache Kafka"]
-        TOPICS[Partitioned Topics<br/>by Source Type]
-        REGISTRY[Schema Registry<br/>Avro Validation]
-    end
+Ingestion Layer [icon: plug, color: lightyellow] {
+  Webhook Listener [icon: radio, color: lightyellow]
+  Debezium CDC [icon: refresh-cw, color: lightyellow]
+  REST API Pollers [icon: cloud, color: lightyellow]
+  Event Streams [icon: log-in, color: lightyellow]
+}
 
-    subgraph BeamPipeline["⚙️ Apache Beam Pipeline on Apache Flink Runtime"]
-        direction TB
-        
-        subgraph Stage1["Stage 1️⃣: Ingestion & Validation"]
-            K_IN[Kafka Consumer<br/>Parallel Readers]
-            SCHEMA_VAL[Schema Validation<br/>& Type Checking]
-            DEDUPE[Deduplication<br/>by ID/Hash]
-        end
+Apache Kafka [icon: message-square, color: orange] {
+  Partitioned Topics [icon: layers, color: orange]
+  Schema Registry [icon: check-circle, color: orange]
+}
 
-        subgraph Stage2["Stage 2️⃣: Transformation & Entity Extraction"]
-            PARSE[Parse & Extract<br/>Structured Data]
-            ENRICH[Context Enrichment<br/>Add Metadata]
-            NORMALIZE[Data Normalization<br/>Consistent Format]
-            GRAPH_EXTRACT[🕸️ Graph Extraction<br/>Entities & Relationships]
-        end
+Apache Beam Pipeline [icon: workflow, color: lightblue] {
+  // Stage 1: Ingestion & Validation
+  Kafka Consumer [icon: download, color: lightblue]
+  Schema Validation [icon: check-square, color: lightblue]
+  Deduplication [icon: hash, color: lightblue]
+  // Stage 2: Transformation & Entity Extraction
+  Parse and Extract [icon: file-text, color: lightblue]
+  Context Enrichment [icon: plus-circle, color: lightblue]
+  Data Normalization [icon: repeat, color: lightblue]
+  Graph Extraction [icon: share-2, color: yellow]
+  // Stage 3: Quality & Compliance
+  Data Quality Checks [icon: check, color: lightblue]
+  PII Detection and Masking [icon: eye-off, color: lightblue]
+  Business Rules Validation [icon: check-circle, color: lightblue]
+  // Stage 4: Intelligent Chunking
+  Text Chunking [icon: file-text, color: lightblue]
+  Code Segmentation [icon: code, color: lightblue]
+  Document Splitting [icon: file, color: lightblue]
+  // Stage 5: Embedding Generation
+  Check Embedding Cache [icon: database, color: lightblue]
+  Model Router [icon: shuffle, color: lightblue]
+  Generate Embeddings [icon: cpu, color: lightblue]
+  // Stage 6: Multi-Store Writing
+  Milvus Writer [icon: database, color: yellow]
+  MongoDB Writer [icon: file, color: lightblue]
+  Neo4j Writer [icon: share-2, color: yellow]
+  Index Update [icon: refresh-cw, color: lightblue]
+}
 
-        subgraph Stage3["Stage 3️⃣: Quality & Compliance"]
-            QUALITY[Data Quality Checks<br/>Completeness/Accuracy]
-            PII[PII Detection & Masking<br/>GDPR Compliance]
-            VALIDATE[Business Rules<br/>Validation]
-        end
+Unified Context Fabric [icon: database, color: lightgreen] {
+  Milvus [icon: database, color: lightgreen]
+  MongoDB [icon: file, color: lightgreen]
+  Neo4j [icon: share-2, color: lightblue]
+}
 
-        subgraph Stage4["Stage 4️⃣: Intelligent Chunking"]
-            CHUNK_TEXT[Text Chunking<br/>~1000 tokens/overlap]
-            CHUNK_CODE[Code Segmentation<br/>Functions/Classes]
-            CHUNK_DOCS[Document Splitting<br/>Sections/Paragraphs]
-        end
+// Relationships
+Jira > Webhook Listener
+GitHub > Webhook Listener
+Confluence > REST API Pollers
+Jenkins > REST API Pollers
+SonarQube > Event Streams
+Datadog > Event Streams
+Prometheus > Debezium CDC
+Kubernetes > Debezium CDC
 
-        subgraph Stage5["Stage 5️⃣: Embedding Generation"]
-            CACHE_CHECK{Check Embedding<br/>Cache}
-            MODEL_ROUTE[Model Router<br/>Select Best Model]
-            EMBED_GEN[Generate Embeddings<br/>CodeBERT/BGE/MPNet]
-        end
+Webhook Listener > Partitioned Topics
+Debezium CDC > Partitioned Topics
+REST API Pollers > Partitioned Topics
+Event Streams > Partitioned Topics
 
-        subgraph Stage6["Stage 6️⃣: Multi-Store Writing"]
-            VECTOR_W[📊 Milvus Writer<br/>Vectors + Metadata]
-            DOC_W[📄 MongoDB Writer<br/>Full Documents]
-            GRAPH_W[🕸️ Neo4j Writer<br/>Graph Entities]
-            INDEX_UP[Index Update<br/>Optimization]
-        end
-    end
+Partitioned Topics > Schema Registry
+Partitioned Topics > Kafka Consumer
 
-    subgraph Storage["💾 Unified Context Fabric"]
-        direction LR
-        MILVUS[(Milvus<br/>Vector Search)]
-        MONGO[(MongoDB<br/>Documents)]
-        NEO4J[(Neo4j<br/>Knowledge Graph)]
-    end
+Kafka Consumer > Schema Validation
+Schema Validation > Deduplication
+Deduplication > Parse and Extract
+Parse and Extract > Context Enrichment
+Context Enrichment > Data Normalization
+Data Normalization > Graph Extraction
 
-    %% Data Flow
-    S1 & S2 --> WH
-    S3 & S4 --> API
-    S5 & S7 --> STREAM
-    S6 & S8 --> CDC
+Graph Extraction > Data Quality Checks
+Data Quality Checks > PII Detection and Masking
+PII Detection and Masking > Business Rules Validation
 
-    WH & CDC & API & STREAM --> TOPICS
-    TOPICS -.schema validation.-> REGISTRY
+Business Rules Validation > Text Chunking
+Business Rules Validation > Code Segmentation
+Business Rules Validation > Document Splitting
 
-    TOPICS --> K_IN
-    
-    K_IN --> SCHEMA_VAL --> DEDUPE
-    DEDUPE --> PARSE --> ENRICH --> NORMALIZE --> GRAPH_EXTRACT
-    GRAPH_EXTRACT --> QUALITY --> PII --> VALIDATE
-    VALIDATE --> CHUNK_TEXT & CHUNK_CODE & CHUNK_DOCS
-    
-    CHUNK_TEXT & CHUNK_CODE & CHUNK_DOCS --> CACHE_CHECK
-    CACHE_CHECK -->|Cache Miss| MODEL_ROUTE --> EMBED_GEN
-    CACHE_CHECK -->|Cache Hit| VECTOR_W
-    
-    EMBED_GEN --> VECTOR_W & DOC_W
-    GRAPH_EXTRACT --> GRAPH_W
-    VECTOR_W & DOC_W & GRAPH_W --> INDEX_UP
-    
-    VECTOR_W --> MILVUS
-    DOC_W --> MONGO
-    GRAPH_W --> NEO4J
+Text Chunking > Check Embedding Cache
+Code Segmentation > Check Embedding Cache
+Document Splitting > Check Embedding Cache
 
-    %% Styling
-    style BeamPipeline fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
-    style Queue fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    style Storage fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
-    style GRAPH_EXTRACT fill:#fff9c4,stroke:#f57f17,stroke-width:2px
-    style GRAPH_W fill:#fff9c4,stroke:#f57f17,stroke-width:2px
-    style NEO4J fill:#e1f5ff,stroke:#0277bd,stroke-width:2px
+Check Embedding Cache > Model Router: Cache Miss
+Model Router > Generate Embeddings
+Generate Embeddings > Milvus Writer
+Generate Embeddings > MongoDB Writer
+
+Check Embedding Cache > Milvus Writer: Cache Hit
+
+Graph Extraction > Neo4j Writer
+
+Milvus Writer > Index Update
+MongoDB Writer > Index Update
+Neo4j Writer > Index Update
+
+Milvus Writer > Milvus
+MongoDB Writer > MongoDB
+Neo4j Writer > Neo4j
 ```
 
 **Pipeline Stages Explained:**
