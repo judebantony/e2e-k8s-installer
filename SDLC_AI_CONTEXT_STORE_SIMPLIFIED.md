@@ -37,7 +37,7 @@ This proposal outlines the design and implementation strategy for building a **c
 
 ## 🏗️ High-Level Architecture
 
-### System Overview with Knowledge Graph
+### System Overview
 
 ![datapipeline_architecture](./docs/image_datapipeline.png)
 
@@ -119,9 +119,159 @@ flowchart LR
     TOPICS -.validates.-> SCHEMA
 ```
 
-### 3. Data Pipeline - Apache Beam on Flink
+### 3. Complete End-to-End Data Pipeline
 
-#### Why Apache Beam + Flink?
+**Consolidated View: Sources → Kafka → Apache Beam on Flink → Storage**
+
+```mermaid
+flowchart TB
+    subgraph Sources["📊 Data Sources"]
+        direction LR
+        S1[Jira]
+        S2[GitHub]
+        S3[Confluence]
+        S4[Jenkins]
+        S5[SonarQube]
+        S6[Prometheus]
+        S7[Datadog]
+        S8[Kubernetes]
+    end
+
+    subgraph Connectors["🔌 Ingestion Layer"]
+        direction TB
+        WH[Webhook Listener<br/>Real-time Events]
+        CDC[Debezium CDC<br/>Database Changes]
+        API[REST API Pollers<br/>Scheduled Sync]
+        STREAM[Event Streams<br/>Logs & Metrics]
+    end
+
+    subgraph Queue["📨 Apache Kafka"]
+        TOPICS[Partitioned Topics<br/>by Source Type]
+        REGISTRY[Schema Registry<br/>Avro Validation]
+    end
+
+    subgraph BeamPipeline["⚙️ Apache Beam Pipeline on Apache Flink Runtime"]
+        direction TB
+        
+        subgraph Stage1["Stage 1️⃣: Ingestion & Validation"]
+            K_IN[Kafka Consumer<br/>Parallel Readers]
+            SCHEMA_VAL[Schema Validation<br/>& Type Checking]
+            DEDUPE[Deduplication<br/>by ID/Hash]
+        end
+
+        subgraph Stage2["Stage 2️⃣: Transformation & Entity Extraction"]
+            PARSE[Parse & Extract<br/>Structured Data]
+            ENRICH[Context Enrichment<br/>Add Metadata]
+            NORMALIZE[Data Normalization<br/>Consistent Format]
+            GRAPH_EXTRACT[🕸️ Graph Extraction<br/>Entities & Relationships]
+        end
+
+        subgraph Stage3["Stage 3️⃣: Quality & Compliance"]
+            QUALITY[Data Quality Checks<br/>Completeness/Accuracy]
+            PII[PII Detection & Masking<br/>GDPR Compliance]
+            VALIDATE[Business Rules<br/>Validation]
+        end
+
+        subgraph Stage4["Stage 4️⃣: Intelligent Chunking"]
+            CHUNK_TEXT[Text Chunking<br/>~1000 tokens/overlap]
+            CHUNK_CODE[Code Segmentation<br/>Functions/Classes]
+            CHUNK_DOCS[Document Splitting<br/>Sections/Paragraphs]
+        end
+
+        subgraph Stage5["Stage 5️⃣: Embedding Generation"]
+            CACHE_CHECK{Check Embedding<br/>Cache}
+            MODEL_ROUTE[Model Router<br/>Select Best Model]
+            EMBED_GEN[Generate Embeddings<br/>CodeBERT/BGE/MPNet]
+        end
+
+        subgraph Stage6["Stage 6️⃣: Multi-Store Writing"]
+            VECTOR_W[📊 Milvus Writer<br/>Vectors + Metadata]
+            DOC_W[📄 MongoDB Writer<br/>Full Documents]
+            GRAPH_W[🕸️ Neo4j Writer<br/>Graph Entities]
+            INDEX_UP[Index Update<br/>Optimization]
+        end
+    end
+
+    subgraph Storage["💾 Unified Context Fabric"]
+        direction LR
+        MILVUS[(Milvus<br/>Vector Search)]
+        MONGO[(MongoDB<br/>Documents)]
+        NEO4J[(Neo4j<br/>Knowledge Graph)]
+    end
+
+    %% Data Flow
+    S1 & S2 --> WH
+    S3 & S4 --> API
+    S5 & S7 --> STREAM
+    S6 & S8 --> CDC
+
+    WH & CDC & API & STREAM --> TOPICS
+    TOPICS -.schema validation.-> REGISTRY
+
+    TOPICS --> K_IN
+    
+    K_IN --> SCHEMA_VAL --> DEDUPE
+    DEDUPE --> PARSE --> ENRICH --> NORMALIZE --> GRAPH_EXTRACT
+    GRAPH_EXTRACT --> QUALITY --> PII --> VALIDATE
+    VALIDATE --> CHUNK_TEXT & CHUNK_CODE & CHUNK_DOCS
+    
+    CHUNK_TEXT & CHUNK_CODE & CHUNK_DOCS --> CACHE_CHECK
+    CACHE_CHECK -->|Cache Miss| MODEL_ROUTE --> EMBED_GEN
+    CACHE_CHECK -->|Cache Hit| VECTOR_W
+    
+    EMBED_GEN --> VECTOR_W & DOC_W
+    GRAPH_EXTRACT --> GRAPH_W
+    VECTOR_W & DOC_W & GRAPH_W --> INDEX_UP
+    
+    VECTOR_W --> MILVUS
+    DOC_W --> MONGO
+    GRAPH_W --> NEO4J
+
+    %% Styling
+    style BeamPipeline fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style Queue fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style Storage fill:#e8f5e9,stroke:#388e3c,stroke-width:3px
+    style GRAPH_EXTRACT fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style GRAPH_W fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    style NEO4J fill:#e1f5ff,stroke:#0277bd,stroke-width:2px
+```
+
+**Pipeline Stages Explained:**
+
+| Stage | Purpose | Key Operations | Output |
+|-------|---------|----------------|--------|
+| **Ingestion** | Capture from sources | Webhooks, CDC, REST polling, event streams | Raw events to Kafka |
+| **1️⃣ Validation** | Ensure data quality | Schema check, deduplication, type validation | Clean, validated records |
+| **2️⃣ Transformation** | Extract entities & relationships | Parse, enrich, normalize, **graph extraction** | Structured data + graph entities |
+| **3️⃣ Quality** | Compliance & quality | PII masking, quality checks, business rules | Compliant, high-quality data |
+| **4️⃣ Chunking** | Prepare for embedding | Smart chunking (code/text/docs), metadata extraction | Optimally-sized chunks |
+| **5️⃣ Embedding** | Generate vectors | Model selection, embedding generation, caching | Vector embeddings |
+| **6️⃣ Storage** | Write to stores | **Parallel writes** to Milvus, MongoDB, Neo4j | Stored in context fabric |
+
+**Key Features:**
+
+✅ **Unified Pipeline**: Single Apache Beam pipeline writes to all three stores  
+✅ **Real-Time Processing**: Sub-second latency with Flink streaming  
+✅ **Exactly-Once Semantics**: No duplicates, guaranteed delivery  
+✅ **Intelligent Caching**: Skip re-embedding unchanged content (60% cost savings)  
+✅ **Graph Extraction**: Automatically extract entities and relationships in Stage 2  
+✅ **Parallel Processing**: Handle multiple data types simultaneously  
+✅ **Fault Tolerant**: Automatic retries, checkpointing, state recovery  
+✅ **Schema Evolution**: Handle source schema changes gracefully  
+
+**Performance Metrics:**
+
+| Metric | Capacity |
+|--------|----------|
+| **Throughput** | 50,000+ events/second from Kafka |
+| **Embedding Rate** | 1,000+ vectors/second |
+| **End-to-End Latency** | < 500ms (source → storage) |
+| **Backfill Speed** | Process years of data in hours |
+| **Availability** | 99.9% uptime with Flink HA |
+
+---
+
+### 4. Why Apache Beam + Flink?
 
 **Apache Beam Benefits:**
 - Unified batch and streaming model
@@ -139,60 +289,6 @@ flowchart LR
 - **Apache Spark Structured Streaming**: Good for batch-heavy workloads, but higher latency
 - **Apache Kafka Streams**: Simpler but less portable and limited to Kafka
 - **Recommendation**: Stick with **Apache Beam + Flink** for best balance of features and performance
-
-#### Pipeline Architecture
-
-```mermaid
-flowchart TB
-    subgraph "Apache Beam Pipeline on Flink"
-        direction TB
-        
-        subgraph "Stage 1: Ingestion"
-            KAFKA_IN[Kafka Source]
-            SCHEMA_VAL[Schema Validation]
-            DEDUPE[Deduplication]
-        end
-
-        subgraph "Stage 2: Transformation"
-            PARSE[Parse & Extract]
-            ENRICH[Enrich with Metadata]
-            NORMALIZE[Data Normalization]
-            LINK[Entity Linking]
-        end
-
-        subgraph "Stage 3: Quality & Validation"
-            QUALITY[Data Quality Checks]
-            PII[PII Detection & Masking]
-            VALIDATE[Business Rule Validation]
-        end
-
-        subgraph "Stage 4: Chunking & Preparation"
-            CHUNK_TEXT[Text Chunking]
-            CHUNK_CODE[Code Segmentation]
-            CHUNK_DOCS[Document Splitting]
-            METADATA[Metadata Extraction]
-        end
-
-        subgraph "Stage 5: Embedding Generation"
-            EMBED_BATCH[Batch Embedding Service]
-            MODEL_ROUTER[Model Router]
-            CACHE_CHECK[Embedding Cache]
-        end
-
-        subgraph "Stage 6: Storage"
-            VECTOR_WRITE[Milvus Writer]
-            DOC_WRITE[MongoDB Writer]
-            INDEX_UPDATE[Index Update]
-        end
-    end
-
-    KAFKA_IN --> SCHEMA_VAL --> DEDUPE
-    DEDUPE --> PARSE --> ENRICH --> NORMALIZE --> LINK
-    LINK --> QUALITY --> PII --> VALIDATE
-    VALIDATE --> CHUNK_TEXT & CHUNK_CODE & CHUNK_DOCS --> METADATA
-    METADATA --> CACHE_CHECK --> MODEL_ROUTER --> EMBED_BATCH
-    EMBED_BATCH --> VECTOR_WRITE & DOC_WRITE --> INDEX_UPDATE
-```
 
 ---
 
