@@ -96,21 +96,24 @@ This proposal outlines the design and implementation strategy for building a **c
 
 ---
 
-### 4. Why Apache Beam + Flink?
-tflow
+### 3. Why Apache Beam + Flink?
+
 **Apache Beam Benefits:**
+
 - Unified batch and streaming model
 - Portable across multiple runners (Flink, Spark, Dataflow)
 - Rich windowing and state management
 - Built-in data quality and monitoring
 
 **Apache Flink as Runner:**
+
 - True streaming with low latency (< 100ms)
 - Exactly-once processing semantics
 - Advanced state management
 - High throughput and scalability
 
 **Alternative Considerations:**
+
 - **Apache Spark Structured Streaming**: Good for batch-heavy workloads, but higher latency
 - **Apache Kafka Streams**: Simpler but less portable and limited to Kafka
 - **Recommendation**: Stick with **Apache Beam + Flink** for best balance of features and performance
