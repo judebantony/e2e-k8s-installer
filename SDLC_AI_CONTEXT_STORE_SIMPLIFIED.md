@@ -91,8 +91,8 @@ This proposal outlines the design and implementation strategy for building a **c
 1. **Source Systems** → Various SDLC tools (Jira, GitHub, Confluence, Jenkins, etc.)
 2. **Ingestion Connectors** → Capture data via webhooks (real-time), CDC (database changes), REST APIs (polling), or event streams
 3. **Apache Kafka** → Buffers events in partitioned topics, provides backpressure handling and replay capability
-4. **Schema Registry** → Validates data schemas using Avro, ensures data consistency
-5. **Next Stage** → Events flow to Apache Beam pipeline on Flink (detailed below) →
+4. **Schema Registry** → Validates data schemas using ***Avro***, ensures data consistency
+5. **Data Pipeline** → Events flow to Apache Beam pipeline on Flink stored in Vector DB + Document Store + Graph DB
 
 ---
 
@@ -104,6 +104,8 @@ This proposal outlines the design and implementation strategy for building a **c
 - Portable across multiple runners (Flink, Spark, Dataflow)
 - Rich windowing and state management
 - Built-in data quality and monitoring
+- Run in any infrastructure (on-prem, cloud, hybrid)
+- protable across multiple runners (Flink, Spark, Dataflow)
 
 **Apache Flink as Runner:**
 
@@ -116,7 +118,11 @@ This proposal outlines the design and implementation strategy for building a **c
 
 The knowledge graph models entities and relationships across the SDLC landscape, enabling rich context retrieval.
 
-[graph]!(./docs/image_graph.png)
+#### Relationship Graph
+
+![graph](./docs/image_graph.png)
+
+#### Graph Schema
 
 ```mermaid
 graph TD
