@@ -112,11 +112,71 @@ This proposal outlines the design and implementation strategy for building a **c
 - Advanced state management
 - High throughput and scalability
 
-**Alternative Considerations:**
+### 4. Data Relationships & Knowledge Graph
 
-- **Apache Spark Structured Streaming**: Good for batch-heavy workloads, but higher latency
-- **Apache Kafka Streams**: Simpler but less portable and limited to Kafka
-- **Recommendation**: Stick with **Apache Beam + Flink** for best balance of features and performance
+The knowledge graph models entities and relationships across the SDLC landscape, enabling rich context retrieval.
+
+[graph]!(./docs/image_graph.png)
+
+```mermaid
+graph TD
+  %% =========================
+  %% Style and Domain Groups
+  %% =========================
+  classDef product fill:#E8F2FF,stroke:#2B6CB0,rx:10,ry:10;
+  classDef infra fill:#E8FFE8,stroke:#33CC33,rx:10,ry:10;
+  classDef people fill:#FFF5E6,stroke:#B7791F,rx:10,ry:10;
+  classDef tool fill:#F0F5FF,stroke:#4C51BF,rx:10,ry:10;
+
+  %% =========================
+  %% Entities
+  %% =========================
+  APP[🧩 Application / Product]
+  COMP[📦 Deployable Components]
+  INFRA[🧱 Infrastructure]
+  ENV[🌐 Environments]
+  OBS[🔭 Observability Platform]
+  GIT[🧭 Git Repository]
+  CICD[⚙️ CI/CD System]
+  SEC[🛡️ SecOps Tool]
+  TEST[🧪 Testing Platform]
+  JIRA[Jira]
+  CONF[Confluence]
+  TEAM[👨‍👩‍👧 Team]
+  PPL[👥 People]
+  ORG[🏢 Organization]
+
+  %% =========================
+  %% Relationships
+  %% =========================
+  APP -- "consistOf" --> COMP
+  COMP -- "deployedOn" --> INFRA
+  INFRA -- "scopeOf" --> ENV
+  ENV -- "monitoredBy" --> OBS
+
+  COMP -- "has" --> GIT
+  GIT -- "workedOnBy" --> PPL
+  GIT -- "buildOn" --> CICD
+  CICD -- "scanCodeWith" --> SEC
+  SEC -- "deployTo" --> INFRA
+  INFRA -- "testedOn" --> TEST
+
+  TEAM -- "workFor" --> APP
+  APP -- "willHave" --> JIRA
+  APP -- "willHave" --> CONF
+
+  PPL -- "partOf" --> TEAM
+  TEAM -- "isPartOf" --> ORG
+
+  %% =========================
+  %% Classes
+  %% =========================
+  class APP,COMP,ENV,OBS product;
+  class INFRA infra;
+  class GIT,CICD,SEC,TEST,JIRA,CONF tool;
+  class TEAM,PPL,ORG people;
+
+```
 
 ---
 
