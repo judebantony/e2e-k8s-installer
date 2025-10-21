@@ -152,7 +152,7 @@ gantt
 
 ### High-Level Architecture
 
-![e2e](./docs/image_e2e.png)
+![e2e](./docs/)
 
 ```mermaid
 flowchart LR
