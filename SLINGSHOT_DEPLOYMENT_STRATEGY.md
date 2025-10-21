@@ -152,52 +152,82 @@ gantt
 
 ### High-Level Architecture
 
+![e2e](./docs/image_e2e.png)
+
 ```mermaid
-graph TB
-    subgraph "Client Intake Layer"
-        A1[📋 Intake Form] --> A2[Configuration Validator]
-        A2 --> A3[Client Profile JSON]
-    end
-    
-    subgraph "Artifact Management"
-        B1[🐳 OCI Image Registry] --> B4[Artifact Bundle]
-        B2[📄 Helm Chart Repo] --> B4
-        B3[🏗️ Terraform Modules] --> B4
-        B4 --> B5[Security Scan]
-        B5 --> B6[Compliance Check]
-    end
-    
-    subgraph "Client Installer (Core Engine)"
-        C1[Pre-flight Validator] --> C2[Infra Provisioner]
-        C2 --> C3[DB Migration Engine]
-        C3 --> C4[App Deploy Engine]
-        C4 --> C5[Health Check Suite]
-        C5 --> C6[Post-Deploy Actions]
-    end
-    
-    subgraph "Observability & Reporting"
-        D1[Centralized Logging]
-        D2[Distributed Tracing]
-        D3[Deployment Dashboard]
-        D4[Audit Trail DB]
-    end
-    
-    A3 --> C1
-    B6 --> C2
-    C1 --> D1
-    C2 --> D1
-    C3 --> D1
-    C4 --> D1
-    C5 --> D1
-    C6 --> D3
-    D1 --> D4
-    D2 --> D4
-    
-    style A1 fill:#e1f5ff
-    style B4 fill:#f3e5f5
-    style C1 fill:#fff3e0
-    style C4 fill:#e8f5e9
-    style D3 fill:#c8e6c9
+flowchart LR
+  %% Direction & Styling
+  classDef phase fill:#0d1b2a,stroke:#b8ff00,stroke-width:2px,color:#ffffff,rx:10,ry:10;
+  classDef task fill:#132238,stroke:#3bd100,stroke-width:1px,color:#e8f5ff,rx:6,ry:6;
+
+  %% 1) Streamline Client Intake
+  subgraph S1["1) 🧭 Streamline Client Intake"]
+    direction TB
+    S1a["Client profile & env matrix<br/>• Cloud/on-prem/air-gapped<br/>• Regions, VPC/VNet, IAM"]:::task
+    S1b["Access & credentials capture<br/>• Cloud, Git, Registry, SSO/OIDC"]:::task
+    S1c["Security gates & policies<br/>• Allow-lists, secrets policy, compliance scope"]:::task
+    S1d["Network assessment<br/>• Proxy/egress, private links, CA/SSL"]:::task
+    S1e["Generate Intake Config (JSON)<br/>• Single source of truth"]:::task
+    S1a-->S1b-->S1c-->S1d-->S1e
+  end
+  class S1 phase
+
+  %% 2) Artifact Distribution & Compliance
+  subgraph S2["2) 🚛 Artifact Distribution & Compliance"]
+    direction TB
+    S2a["OCI images: mirror / verify<br/>• Digest pinning • Trivy scan • Cosign sign/verify"]:::task
+    S2b["Helm / Terraform / DB scripts<br/>• Version tags • Mirror to client GitHub<br/>• Offline bundles for air-gap"]:::task
+    S2c["SBOM & provenance<br/>• Capture & attach to release"]:::task
+    S2d["Client SecOps pipeline approvals"]:::task
+    S2a-->S2b-->S2c-->S2d
+  end
+  class S2 phase
+
+  %% 3) Infrastructure Positioning
+  subgraph S3["3) 🏗️ Infrastructure Positioning"]
+    direction TB
+    S3a["Target selection<br/>• AWS / Azure / GCP / On-prem (OpenShift, Rancher)"]:::task
+    S3b["Provision with Terraform<br/>• K8s cluster • Managed DB/Cache/Msg"]:::task
+    S3c["Platform wiring<br/>• Networking (CNI/ingress) • StorageClass • Secrets backend"]:::task
+    S3d["Bootstrap<br/>• Namespaces • RBAC • Quotas • Policies"]:::task
+    S3a-->S3b-->S3c-->S3d
+  end
+  class S3 phase
+
+  %% 4) Pre & Post Automation
+  subgraph S4["4) 🔄 Pre & Post Automation"]
+    direction TB
+    S4a["Pre-install checks<br/>• Dry-run • Capacity & quotas • DNS/TLS • Secrets sync"]:::task
+    S4b["Post-install automation<br/>• Backups • Log rotation • Telemetry hooks"]:::task
+    S4c["Runbooks & rollback hooks"]:::task
+    S4a-->S4b-->S4c
+  end
+  class S4 phase
+
+  %% 5) CLI-based Installer
+  subgraph S5["5) 🧰 CLI-based Installer"]
+    direction TB
+    S5a["Commands<br/>• setup • package-pull • provision-infra<br/>• db-migrate • deploy • post-validate • e2e-test • install"]:::task
+    S5b["Execution guarantees<br/>• Idempotent • Resume/rollback • Progress bars"]:::task
+    S5c["Outputs<br/>• JSON reports • Audit logs • Manifest mapping"]:::task
+    S5a-->S5b-->S5c
+  end
+  class S5 phase
+
+  %% 6) Validation & Health Check
+  subgraph S6["6) ✅ Validation & Health Check"]
+    direction TB
+    S6a["K8s readiness & liveness<br/>• Pods, jobs, HPA/VPA"]:::task
+    S6b["Health endpoints & synthetic tests<br/>• API / UI / Integrations"]:::task
+    S6c["SLO gates & decisioning<br/>• Pass → promote • Fail → rollback"]:::task
+    S6d["Install summary & compliance report"]:::task
+    S6a-->S6b-->S6c-->S6d
+  end
+  class S6 phase
+
+  %% Left-to-right strategic flow
+  S1 --> S2 --> S3 --> S4 --> S5 --> S6
+
 ```
 
 ---
